@@ -98,6 +98,16 @@ def tier1(output, case, prompt, loaded_text=""):
             sw = tm.word_count(case["source"])
             failed = abs(ow - sw) > val * sw
             detail = "output %dw vs source %dw (max delta %s)" % (ow, sw, val)
+        elif prop == "per_section_tell_rise_max":
+            # session-drift guard: per-section tell density must not rise. The first
+            # section is the baseline; any later section may not exceed it by more
+            # than `value` tell-words per 200 words. Single-section outputs pass.
+            secs = tm.split_sections(output)
+            rates = [tm.check_tell_flags((h + "\n" + b) if h else b)["metric"]
+                     for h, b in secs]
+            failed = len(rates) > 1 and any(r > rates[0] + val for r in rates[1:])
+            detail = ("per-section tell rates %s; first section %s is the baseline "
+                      "(max rise %s)" % (rates, rates[0], val))
         else:
             failed, detail = True, "unknown or unevaluable metamorphic property %r" % prop
         meta_rec = {"property": prop, "value": val, "passed": not failed, "detail": detail}

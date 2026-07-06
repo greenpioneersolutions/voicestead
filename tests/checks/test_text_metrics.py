@@ -488,3 +488,40 @@ def test_tell_words_mirror_tells_md():
     tells_md = open(os.path.join(REPO, "skills", "voicestead", "references", "tells.md"), encoding="utf-8").read().lower()
     missing = [w for w in tm.TELL_WORDS if w.lower() not in tells_md]
     assert missing == [], "TELL_WORDS entries absent from tells.md: %s" % missing
+
+
+# ---- split_sections (markdown H2 splitter for the drift guard) ----
+def test_split_sections_basic():
+    doc = "intro line\n\n## Alpha\n\na body.\n\n## Beta\n\nb body."
+    assert tm.split_sections(doc) == [("", "intro line"), ("Alpha", "a body."), ("Beta", "b body.")]
+
+
+def test_split_sections_fenced_h2_is_content():
+    # THE SPLITTER CANARY: a '## ' line inside a code fence is content, not a boundary
+    doc = "## Alpha\n\nbefore.\n\n```\n## not a heading\n```\n\nafter."
+    secs = tm.split_sections(doc)
+    assert [h for h, _ in secs] == ["Alpha"]
+    assert "## not a heading" in secs[0][1]
+
+
+def test_split_sections_tilde_fence():
+    doc = "## Alpha\n\n~~~\n## still code\n~~~\n\n## Beta\n\nb."
+    assert [h for h, _ in tm.split_sections(doc)] == ["Alpha", "Beta"]
+
+
+def test_split_sections_no_headings_single_section():
+    # single-section docs behave exactly as before: one section, the whole text
+    assert tm.split_sections("no headings at all.") == [("", "no headings at all.")]
+
+
+def test_split_sections_h3_and_nospace_do_not_split():
+    assert [h for h, _ in tm.split_sections("### deep\nnot h2")] == [""]
+    assert [h for h, _ in tm.split_sections("##nospace\nx")] == [""]
+
+
+def test_split_sections_first_line_heading():
+    assert tm.split_sections("## First\n\nonly section") == [("First", "only section")]
+
+
+def test_split_sections_empty_text():
+    assert tm.split_sections("") == [("", "")]

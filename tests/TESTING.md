@@ -40,6 +40,23 @@ Run them:
 python3 tests/checks/run_checks.py --output path/to/output.txt --prompt path/to/prompt.txt --checks no_invented_numbers,burstiness_ok,triads_ok
 ```
 
+**Per-section drift scan (`--per-section`).** Long outputs drift: a document can pass
+every frequency threshold overall while its last section is slop, because early clean
+sections dilute the average. `--per-section` closes that hole. It splits the output on
+markdown H2 (`## `) boundaries — fence-aware, so a `## ` line inside a code block is
+content, not a boundary — and runs the configured checks against each section, tagging
+every result line with the section index and heading:
+
+```bash
+python3 tests/checks/run_checks.py --output out.md --per-section --checks tell_flags,no_high_conf_tells
+```
+
+Exit codes match the single-output mode — any hard failure in any section exits 1,
+soft flags alone don't — with one addition: a check that passes on the whole document
+but fails inside a section (the drift signature this mode exists to catch) also exits 1.
+A document with no H2 headings is graded as one section, identical to a whole-document
+run. The same splitter backs the `per_section_tell_rise_max` metamorphic property below.
+
 ---
 
 ## Tier 2 — LLM-as-judge (`tests/judge/`)
@@ -102,6 +119,12 @@ A few properties should hold across transformations, even without a fixed expect
 
 - **Restraint** — feeding an already-clean text through Improve mode must not lengthen it beyond the declared bound. (Guards the "if it's already good, stop" rule.) *Enforced:* cases with `type: metamorphic` declare a `metamorphic` block, and the orchestrator computes `length_delta_max` (output vs source) or `output_to_input_ratio_max` (output vs prompt) as a hard gate — a violation lands in `hard_fails`.
 - **Mode integrity** — Review mode output must not be a rewrite. *Enforced:* the `not_a_rewrite` check, promoted to a hard gate through `must_pass`.
+- **Session drift** — in a long multi-section output, per-section tell density must not
+  rise as the document goes on; clean early sections and a sloppy late one is the
+  failure. *Enforced:* the `per_section_tell_rise_max` property splits the output on H2
+  boundaries and fails when any later section's tell rate exceeds the first section's
+  by more than the declared bound — a violation lands in `hard_fails`, exactly like the
+  length properties.
 - **Voice pull** — with a voice profile loaded, output should score *closer* to the sample's style than without it. *Partially covered:* the judge now sees the loaded profile when grading voice; the automated with/without style-delta comparison is still planned.
 - **Truth preservation** — every specific the prompt supplied must survive to the output (subset check). *Planned:* today this is judged (the `truth` dimension), not deterministically checked.
 

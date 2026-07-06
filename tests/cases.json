@@ -683,6 +683,28 @@
       "must_pass": [
         "no_invented_numbers"
       ]
+    },
+    {
+      "id": 26,
+      "mode": "draft",
+      "type": "metamorphic",
+      "baseline_compare": false,
+      "prompt": "turn these outline notes into one doc with '## ' markdown sections for the team handbook: how we onboard, how we run standups, how we ship, how we handle incidents, how we run retros. keep my plain voice all the way through",
+      "expected_output": "One markdown document with an H2 section per outline item; the last section reads in the same register as the first: no formal creep, no late-section tell pileup, nothing invented.",
+      "deterministic_checks": [
+        "no_invented_numbers",
+        "no_high_conf_tells",
+        "tell_flags"
+      ],
+      "rubric_dimensions": [
+        "voice",
+        "human_rhythm"
+      ],
+      "must_pass": [],
+      "metamorphic": {
+        "property": "per_section_tell_rise_max",
+        "value": 1.0
+      }
     }
   ]
 }

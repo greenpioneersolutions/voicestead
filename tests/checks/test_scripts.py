@@ -196,5 +196,70 @@ def test_check_placeholders_strict_exits1(tmp_path):
     assert report.returncode == 0, report.stdout + report.stderr
 
 
+# --------------------------------------------------------------------------- per-section (run_checks --per-section)
+
+_CLEAN_PAR = ("The vendor sent the corrected docs on Tuesday. We reran the import and "
+              "the numbers matched. Nothing else changed for the team this week.")
+_SLOP_PAR = ("We will leverage robust tooling to streamline the rollout, foster "
+             "alignment, and elevate every seamless, transformative deliverable.")
+
+
+def _drift_doc():
+    """Six sections: a preamble, four clean parts, and a tell-dense LAST section.
+    Enough clean prose (800 words measured by tm.word_count) dilutes the seven
+    tell-words to 1.75/200w — under the 2.0 whole-doc threshold — while the last
+    section alone sits at 77.78/200w. The drift this mode exists to catch."""
+    parts = ["A handbook draft for the team."]
+    for i in range(1, 5):
+        parts.append("## Part %d\n\n%s" % (i, " ".join([_CLEAN_PAR] * 8)))
+    parts.append("## Rollout\n\n%s" % _SLOP_PAR)
+    return "\n\n".join(parts)
+
+
+def test_per_section_catches_last_section_drift(tmp_path):
+    # THE ASYMMETRY CANARY: the whole-doc frequency threshold passes; --per-section must fail.
+    doc = tmp_path / "doc.md"
+    doc.write_text(_drift_doc())
+    checks_cwd = os.path.join(REPO, "tests", "checks")
+
+    whole = _run("tests/checks/run_checks.py", "--output", str(doc),
+                 "--checks", "tell_flags", cwd=checks_cwd)
+    assert whole.returncode == 0, whole.stdout + whole.stderr
+    assert '"soft_flags": 0' in whole.stdout  # diluted below threshold: reports clean
+
+    per = _run("tests/checks/run_checks.py", "--output", str(doc), "--per-section",
+               "--checks", "tell_flags", cwd=checks_cwd)
+    assert per.returncode == 1, "drift signature failed to fire:\n" + per.stdout + per.stderr
+    assert 'section 6/6 "Rollout"' in per.stdout   # index + heading in the failure line
+    assert '"drift"' in per.stdout and '"tell_flags"' in per.stdout
+
+
+def test_per_section_single_section_matches_whole_doc(tmp_path):
+    doc = tmp_path / "doc.md"
+    doc.write_text(" ".join([_CLEAN_PAR] * 8))  # no H2 headings anywhere
+    per = _run("tests/checks/run_checks.py", "--output", str(doc), "--per-section",
+               "--checks", "tell_flags,no_high_conf_tells",
+               cwd=os.path.join(REPO, "tests", "checks"))
+    assert per.returncode == 0, per.stdout + per.stderr
+    assert '"sections": 1' in per.stdout
+    assert '"drift": []' in per.stdout
+
+
+def test_per_section_hard_failure_exits1(tmp_path):
+    doc = tmp_path / "doc.md"
+    doc.write_text("## Update\n\nShip it Friday.\n\n## Close\n\n"
+                   "It's worth noting that we should ship.")
+    per = _run("tests/checks/run_checks.py", "--output", str(doc), "--per-section",
+               "--checks", "no_high_conf_tells", cwd=os.path.join(REPO, "tests", "checks"))
+    assert per.returncode == 1, per.stdout + per.stderr
+    assert "[FAIL]" in per.stdout and '"Close"' in per.stdout
+
+
+def test_per_section_rejects_corpus_mode():
+    r = _run("tests/checks/run_checks.py", "--corpus", os.path.join(REPO, "tests", "corpus"),
+             "--per-section", cwd=os.path.join(REPO, "tests", "checks"))
+    assert r.returncode == 2, r.stdout + r.stderr
+
+
 if __name__ == "__main__":
     sys.exit(pytest.main([__file__, "-q"]))

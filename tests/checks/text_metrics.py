@@ -16,7 +16,7 @@ never report green.
 """
 import re
 import statistics
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 # ---- unicode punctuation -> ascii (dashes deliberately untouched) ----
 _PUNCT_MAP = {
@@ -165,6 +165,39 @@ def split_sentences(text: str) -> List[str]:
             else:
                 out.append(s)
     return [s.strip() for s in out if s.strip()]
+
+
+_H2_LINE = re.compile(r"^## +(\S.*?)\s*$")
+_FENCE_LINE = re.compile(r"^\s*(?:```|~~~)")
+
+
+def split_sections(text: str) -> List[Tuple[str, str]]:
+    """Split a markdown document on H2 headings ('## ' at line start) into
+    (heading, body) pairs, in document order. Fence-aware where split_sentences
+    never needed to be: a '## ' line inside a ``` or ~~~ fenced block is content,
+    not a boundary. Text before the first H2 becomes a ("", preamble) section; a
+    document with no H2 headings comes back as one ("", text) section, so
+    per-section callers grade it exactly like the whole document. H3+ headings
+    and '##nospace' lines never split."""
+    sections: List[Tuple[str, str]] = []
+    heading, buf, in_fence = "", [], False
+    for line in text.splitlines():
+        if _FENCE_LINE.match(line):
+            in_fence = not in_fence
+            buf.append(line)
+            continue
+        m = None if in_fence else _H2_LINE.match(line)
+        if m:
+            body = "\n".join(buf).strip()
+            if heading or body:
+                sections.append((heading, body))
+            heading, buf = m.group(1), []
+        else:
+            buf.append(line)
+    body = "\n".join(buf).strip()
+    if heading or body or not sections:
+        sections.append((heading, body))
+    return sections
 
 
 def _words(s: str) -> List[str]:
