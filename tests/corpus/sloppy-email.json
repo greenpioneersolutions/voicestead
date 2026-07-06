@@ -1,0 +1,7 @@
+{
+  "name": "sloppy-email (slop + triads + fabricated numbers)",
+  "output_file": "sloppy-email.txt",
+  "prompt": "email my boss the migration slips two weeks to the 28th, found out Tuesday the vendor API docs were wrong, keep his confidence",
+  "checks": ["no_invented_numbers","no_high_conf_tells","tell_flags","formula_structures","burstiness_ok","triads_ok","no_throatclear_open"],
+  "expect": {"no_invented_numbers": false, "no_high_conf_tells": false, "tell_flags": false, "triads_ok": false, "no_throatclear_open": false}
+}

@@ -1,0 +1,66 @@
+{
+  "skill_name": "voicestead-golden",
+  "notes": "S0 golden set — the writer's 5 real pieces. run_eval.py generates with/without and judges them; prompts live in raw/ and are pulled in via prompt_file. This is the S0 gate; needs ANTHROPIC_API_KEY.",
+  "evals": [
+    {
+      "id": 1,
+      "mode": "draft",
+      "type": "task",
+      "baseline_compare": true,
+      "prompt_file": "tests/golden/raw/01-persuasive-partner-email.txt",
+      "load": ["references/persuasion.md", "references/influence.md"],
+      "expected_output": "Persuasive proposal email to a business partner: ask/point early, so-what chain to retention and a better UX, honest that it costs more up front, closes by asking for feedback. No invented numbers; sounds like the writer, not a template.",
+      "deterministic_checks": ["no_invented_numbers", "no_high_conf_tells", "tell_flags", "formula_structures", "burstiness_ok", "triads_ok"],
+      "rubric_dimensions": ["persuasion", "voice", "clarity", "truth"],
+      "must_pass": ["no_invented_numbers", "truth"]
+    },
+    {
+      "id": 2,
+      "mode": "draft",
+      "type": "task",
+      "baseline_compare": true,
+      "prompt_file": "tests/golden/raw/02-slack-release-update.txt",
+      "load": ["references/influence.md"],
+      "expected_output": "Short Slack note to the team: the new version is live in 30 minutes, puts the ball in their court to review, asks for candid feedback on the one-click-update experience, warm and unpolished. No invented specifics.",
+      "deterministic_checks": ["no_invented_numbers", "no_high_conf_tells", "tell_flags", "burstiness_ok", "no_throatclear_open", "triads_ok"],
+      "rubric_dimensions": ["voice", "clarity", "human_rhythm", "restraint"],
+      "must_pass": ["no_invented_numbers"]
+    },
+    {
+      "id": 3,
+      "mode": "draft",
+      "type": "task",
+      "baseline_compare": true,
+      "prompt_file": "tests/golden/raw/03-linkedin-speak-up.txt",
+      "load": ["references/formats.md", "references/persuasion.md"],
+      "expected_output": "LinkedIn post that opens on a point and lands a clear call to action (engineers: ask the one question, speak up), uses the 13-years detail as given, keeps the perception-is-reality thread, no fabricated stats.",
+      "deterministic_checks": ["no_invented_numbers", "no_high_conf_tells", "tell_flags", "burstiness_ok", "triads_ok"],
+      "rubric_dimensions": ["persuasion", "voice", "human_rhythm", "clarity"],
+      "must_pass": ["no_invented_numbers"]
+    },
+    {
+      "id": 4,
+      "mode": "draft",
+      "type": "task",
+      "baseline_compare": true,
+      "prompt_file": "tests/golden/raw/04-hard-message-return-to-office.txt",
+      "load": ["references/influence.md"],
+      "expected_output": "Empathetic hard message about the return-to-office guideline: names the stakes for the people who count on them without threatening, acknowledges the frustration honestly, points to the change needed, composed not cold. No invented specifics.",
+      "deterministic_checks": ["no_invented_numbers", "no_high_conf_tells", "tell_flags", "burstiness_ok"],
+      "rubric_dimensions": ["voice", "clarity", "restraint", "truth"],
+      "must_pass": ["no_invented_numbers", "truth"]
+    },
+    {
+      "id": 5,
+      "mode": "draft",
+      "type": "task",
+      "baseline_compare": true,
+      "prompt_file": "tests/golden/raw/05-braindump-ai-enterprise-speed.txt",
+      "load": [],
+      "expected_output": "Turns the brain-dump into a coherent short piece with a clear point (enterprises adopt AI but don't get faster; price/token limits cap the gains) using only the writer's own figures (20-30%), keeps the LLM-limitation and security-line threads, no invented numbers.",
+      "deterministic_checks": ["no_invented_numbers", "no_high_conf_tells", "tell_flags", "burstiness_ok", "triads_ok"],
+      "rubric_dimensions": ["voice", "clarity", "human_rhythm"],
+      "must_pass": ["no_invented_numbers"]
+    }
+  ]
+}

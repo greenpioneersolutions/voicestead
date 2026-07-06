@@ -1,0 +1,23 @@
+{
+  "name": "voicestead",
+  "displayName": "Voicestead",
+  "version": "0.9.0",
+  "description": "Turn rough thoughts into finished writing that reads as genuinely human -- makes its point, keeps your real voice, and stays clean. Draft, improve, review, or humanize any prose headed to another person.",
+  "author": {
+    "name": "Green Pioneer Solutions",
+    "url": "https://github.com/greenpioneersolutions"
+  },
+  "homepage": "https://github.com/greenpioneersolutions/voicestead",
+  "repository": "https://github.com/greenpioneersolutions/voicestead",
+  "license": "MIT",
+  "keywords": [
+    "writing",
+    "editing",
+    "voice",
+    "humanize",
+    "persuasion",
+    "communication",
+    "claude-skill",
+    "agent-skills"
+  ]
+}

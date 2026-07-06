@@ -1,0 +1,8 @@
+{
+  "name": "review-rewrite (feedback request answered with a rewrite — must fail not_a_rewrite)",
+  "output_file": "review-rewrite.txt",
+  "prompt": "give me feedback on this post, DON'T rewrite it: 'After 6 months building our platform, I learned that shipping fast matters less than shipping right. We rushed v1 and paid for it. Here are 3 lessons: test early, listen to users, and stay humble. What do you think?'",
+  "source": "After 6 months building our platform, I learned that shipping fast matters less than shipping right. We rushed v1 and paid for it. Here are 3 lessons: test early, listen to users, and stay humble. What do you think?",
+  "checks": ["not_a_rewrite", "no_high_conf_tells", "no_invented_numbers"],
+  "expect": {"not_a_rewrite": false, "no_high_conf_tells": true, "no_invented_numbers": true}
+}

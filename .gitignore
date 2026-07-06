@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+
+# OS
+.DS_Store
+
+# Build artifacts
+*.skill
+/dist/
+
+# Eval outputs (generated; scorecards are published by hand, not committed raw)
+/tests/results/
+/tests/experiments/**/results/
+/tests/golden/results/*
+!/tests/golden/results/scorecard.template.md
+
+# Personal by design — voice profiles and influences never get committed (see CONTRIBUTING.md).
+# The shipped skill carries only the *.example.md templates.
+/skills/voicestead/voice-profile.md
+/skills/voicestead/voice-profile-*.md
+/skills/voicestead/influences.md
+
+# Local Claude Code settings — personal, not shared
+/.claude/
+
+# Local planning docs — never ship
+/docs/superpowers/

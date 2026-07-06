@@ -1,0 +1,77 @@
+name: release
+
+# Tag a version (git tag v1.0.0 && git push --tags) and this builds the .skill,
+# runs the full gate, and cuts a GitHub Release with the asset attached — S11's
+# release step, automated.
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+# Serialize releases per tag; never cancel one that is half-cut.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: python -m pip install --quiet -r tests/requirements.txt
+      - name: Tag must match plugin.json and marketplace.json versions
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          PJ=$(python -c "import json; print(json.load(open('.claude-plugin/plugin.json'))['version'])")
+          MP=$(python -c "import json; print(json.load(open('.claude-plugin/marketplace.json'))['plugins'][0]['version'])")
+          if [ "$TAG" != "$PJ" ] || [ "$TAG" != "$MP" ]; then
+            echo "version mismatch: tag v$TAG vs plugin.json $PJ vs marketplace.json $MP"
+            exit 1
+          fi
+          echo "versions agree: $TAG"
+      - name: Byte-compile everything (no release ships a SyntaxError)
+        run: python -m compileall -q tests scripts
+      - name: Gate before release (structure + corpus + dogfood)
+        run: |
+          python tests/checks/validate_repo.py
+          ( cd tests/checks && python run_checks.py --corpus ../corpus )
+          ( cd tests/checks && python dogfood.py )
+      - name: Full unit-test suite before release
+        run: python -m pytest tests/checks tests/test_pipeline_mock.py -q
+      - name: Fail on any leftover placeholder before a public release
+        run: python scripts/check_placeholders.py --strict
+      - name: Build the .skill
+        run: python -m scripts.package_skill voicestead --out voicestead.skill
+      - name: Inspect the built .skill (SKILL.md present, frontmatter parses, no personal files)
+        run: |
+          python - <<'EOF'
+          import fnmatch, zipfile
+          import yaml
+          z = zipfile.ZipFile("voicestead.skill")
+          names = z.namelist()
+          assert "voicestead/SKILL.md" in names, "SKILL.md missing from archive: %r" % names[:10]
+          bad = [n for n in names if not n.endswith(".example.md") and (
+              fnmatch.fnmatch(n.rsplit("/", 1)[-1], "voice-profile*.md")
+              or fnmatch.fnmatch(n.rsplit("/", 1)[-1], "influences*.md")
+              or n.rsplit("/", 1)[-1] == ".DS_Store")]
+          assert not bad, "forbidden files rode along in the archive: %r" % bad
+          text = z.read("voicestead/SKILL.md").decode("utf-8")
+          assert text.startswith("---"), "SKILL.md has no YAML frontmatter"
+          fm = yaml.safe_load(text.split("---")[1])
+          assert fm.get("name") == "voicestead", "frontmatter name is %r" % fm.get("name")
+          desc = fm.get("description") or ""
+          assert 0 < len(desc) <= 1024, "description length %d out of range" % len(desc)
+          print("skill archive verified: %d files, description %d chars" % (len(names), len(desc)))
+          EOF
+      - name: Create the GitHub Release with the .skill attached
+        uses: softprops/action-gh-release@v2
+        with:
+          files: voicestead.skill
+          generate_release_notes: true

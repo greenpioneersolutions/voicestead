@@ -1,0 +1,8 @@
+{
+  "name": "bloated-clean (a 15-word standup note inflated with headers — must fail max_words)",
+  "output_file": "bloated-clean.txt",
+  "prompt": "edit this: 'Standup is cancelled tomorrow. Use the time to close out sprint tickets. Back to normal Thursday.'",
+  "source": "Standup is cancelled tomorrow. Use the time to close out sprint tickets. Back to normal Thursday.",
+  "checks": ["no_high_conf_tells", "no_invented_numbers", {"id": "max_words", "params": {"limit": 45}}],
+  "expect": {"max_words": false, "no_high_conf_tells": true, "no_invented_numbers": true}
+}

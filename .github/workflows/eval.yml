@@ -1,0 +1,166 @@
+name: voicestead-eval
+
+# Trigger choice (double-run fix): `push` covers every same-repo branch, so a
+# same-repo PR would otherwise run twice (push + pull_request). We keep the
+# pull_request trigger ONLY for forks — fork branches never fire `push` here —
+# and the check job skips its pull_request duplicate for same-repo branches.
+# Result: exactly one check run per event, and forks still get coverage.
+on:
+  push:
+  pull_request:
+  workflow_dispatch:      # run the model-graded evals on demand
+  schedule:
+    - cron: "0 9 * * 1"   # and weekly, Monday 09:00 UTC
+
+# One live run per ref: a fresh push/PR sync cancels the stale run. Scheduled
+# and dispatched runs are never cancelled mid-flight — they cost API money.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
+
+jobs:
+  # Tier 1: fast, free, deterministic. Guards EVERY push and PR.
+  check:
+    # Skip the pull_request duplicate for same-repo branches (already covered
+    # by push); keep it for forks — their only path into this workflow.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.12"]   # the harness must run on both
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - run: python -m pip install --quiet -r tests/requirements.txt
+      - name: Byte-compile everything (a SyntaxError must fail the push, not the first paid run)
+        run: python -m compileall -q tests scripts
+      - name: Repo structure guard (cases<->evals sync, manifests, frontmatter, fixtures)
+        run: python tests/checks/validate_repo.py
+      - name: Tier-1 deterministic checks (regression corpus)
+        run: |
+          cd tests/checks
+          python run_checks.py --corpus ../corpus
+      - name: Dogfood — the skill must pass its own bar
+        run: |
+          cd tests/checks
+          python dogfood.py
+      - name: Unit tests (guard the guards — every test file, not just text_metrics)
+        run: python -m pytest tests/checks tests/test_pipeline_mock.py -q
+      - name: Relative markdown links resolve
+        run: python scripts/check_links.py
+      - name: Mock-mode orchestrator (full pipeline logic on every push, no API key)
+        env:
+          VOICESTEAD_MOCK: "1"
+        run: python tests/run_eval.py --cases tests/cases.json --runs 1 --out /tmp/mock
+      - name: Placeholder sweep (report-only pre-launch; flip to --strict at S6/launch)
+        run: python scripts/check_placeholders.py
+      - name: Build the .skill release asset
+        run: python -m scripts.package_skill voicestead --out dist/voicestead.skill
+      - name: Inspect the built .skill (SKILL.md present, frontmatter parses, no personal files)
+        run: |
+          python - <<'EOF'
+          import fnmatch, zipfile
+          import yaml
+          z = zipfile.ZipFile("dist/voicestead.skill")
+          names = z.namelist()
+          assert "voicestead/SKILL.md" in names, "SKILL.md missing from archive: %r" % names[:10]
+          bad = [n for n in names if not n.endswith(".example.md") and (
+              fnmatch.fnmatch(n.rsplit("/", 1)[-1], "voice-profile*.md")
+              or fnmatch.fnmatch(n.rsplit("/", 1)[-1], "influences*.md")
+              or n.rsplit("/", 1)[-1] == ".DS_Store")]
+          assert not bad, "forbidden files rode along in the archive: %r" % bad
+          text = z.read("voicestead/SKILL.md").decode("utf-8")
+          assert text.startswith("---"), "SKILL.md has no YAML frontmatter"
+          fm = yaml.safe_load(text.split("---")[1])
+          assert fm.get("name") == "voicestead", "frontmatter name is %r" % fm.get("name")
+          desc = fm.get("description") or ""
+          assert 0 < len(desc) <= 1024, "description length %d out of range" % len(desc)
+          print("skill archive verified: %d files, description %d chars" % (len(names), len(desc)))
+          EOF
+      - uses: actions/upload-artifact@v4
+        if: matrix.python-version == '3.12'   # one artifact per run, not one per matrix leg
+        with:
+          name: voicestead-skill
+          path: dist/voicestead.skill
+          retention-days: 30
+
+  # Tier 2/3: costs money, non-deterministic. Gates releases, not commits.
+  evaluate:
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for ANTHROPIC_API_KEY
+        id: key
+        run: |
+          if [ -z "${{ secrets.ANTHROPIC_API_KEY }}" ]; then
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::ANTHROPIC_API_KEY not configured — skipping keyed evaluation (see docs/LAUNCH.md S0)."
+          else
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        if: steps.key.outputs.present == 'true'
+      - uses: actions/setup-python@v5
+        if: steps.key.outputs.present == 'true'
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r tests/requirements.txt
+        if: steps.key.outputs.present == 'true'
+      - name: Full evaluation (generate + judge + benchmark on the full case suite)
+        if: steps.key.outputs.present == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          JUDGE_MODEL: claude-opus-4-8
+          SKILL_MODEL: claude-sonnet-5
+        # --gate: a sub-70% win rate (or any hard-gate failure) exits nonzero,
+        # so a drifted Monday run turns this workflow red — the drift alarm.
+        run: python tests/run_eval.py --cases tests/cases.json --runs 3 --out tests/results --gate
+      - uses: actions/upload-artifact@v4
+        # always(): keep partial/ results even when the gate fails or a case crashes
+        if: always() && steps.key.outputs.present == 'true'
+        with:
+          name: scorecard
+          path: tests/results/
+          retention-days: 30
+
+  # The S0 gate, on demand: with vs without on the writer's 5 real pieces.
+  golden:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for ANTHROPIC_API_KEY
+        id: key
+        run: |
+          if [ -z "${{ secrets.ANTHROPIC_API_KEY }}" ]; then
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::ANTHROPIC_API_KEY not configured — skipping keyed evaluation (see docs/LAUNCH.md S0)."
+          else
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        if: steps.key.outputs.present == 'true'
+      - uses: actions/setup-python@v5
+        if: steps.key.outputs.present == 'true'
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r tests/requirements.txt
+        if: steps.key.outputs.present == 'true'
+      - name: S0 golden run (with vs without on the real fixtures)
+        if: steps.key.outputs.present == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          JUDGE_MODEL: claude-opus-4-8
+          SKILL_MODEL: claude-sonnet-5
+        run: python tests/run_eval.py --cases tests/golden/cases.golden.json --runs 3 --out tests/golden/results
+      - uses: actions/upload-artifact@v4
+        # always(): partial results are still evidence
+        if: always() && steps.key.outputs.present == 'true'
+        with:
+          name: golden-scorecard
+          path: tests/golden/results/
+          retention-days: 30

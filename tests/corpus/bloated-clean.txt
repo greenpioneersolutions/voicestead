@@ -1,0 +1,10 @@
+Subject: An Important Update Regarding Tomorrow's Standup
+
+## Summary
+I wanted to take a moment to share a quick scheduling update with the whole team. Tomorrow's daily standup meeting has been cancelled and will not be taking place at its usual time.
+
+## What To Do With The Time
+Please use the time that has now been freed up to focus on closing out any of your remaining open sprint tickets.
+
+## Looking Ahead
+Everything will return to our normal schedule and regular cadence starting on Thursday. Thanks so much, everyone.

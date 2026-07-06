@@ -1,0 +1,7 @@
+{
+  "name": "onboarding-nag (delivers, then wrongly re-pitches setup — must fail no_onboarding_pitch)",
+  "output_file": "onboarding-nag.txt",
+  "prompt": "move the sprint demo to Thursday 2pm, tell the team, keep it chill",
+  "checks": ["no_onboarding_pitch", "no_high_conf_tells"],
+  "expect": {"no_onboarding_pitch": false, "no_high_conf_tells": true}
+}

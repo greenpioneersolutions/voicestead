@@ -1,0 +1,688 @@
+{
+  "skill_name": "voicestead",
+  "notes": "Extends Anthropic's evals.json shape with: mode, load (refs to inject), deterministic_checks (Tier 1), rubric_dimensions (Tier 2), must_pass (hard gates + critical dims), baseline_compare (run with/without and judge pairwise), type (task|metamorphic).",
+  "evals": [
+    {
+      "id": 1,
+      "mode": "draft",
+      "type": "task",
+      "baseline_compare": true,
+      "load": [
+        "references/formats.md"
+      ],
+      "prompt": "help me email my boss that the migration is going to slip two weeks because the vendor API docs were wrong, we found out Tuesday, new date is the 28th, i want to keep his confidence",
+      "expected_output": "Short email; news + new date in the first line; cause stated factually; a next-step; no groveling; no invented mitigation.",
+      "deterministic_checks": [
+        "no_invented_numbers",
+        "no_high_conf_tells",
+        "tell_flags",
+        "formula_structures",
+        "burstiness_ok",
+        "triads_ok",
+        "no_throatclear_open",
+        {
+          "id": "max_words",
+          "params": {
+            "limit": 130
+          }
+        }
+      ],
+      "rubric_dimensions": [
+        "voice",
+        "clarity",
+        "human_rhythm",
+        "truth"
+      ],
+      "must_pass": [
+        "no_invented_numbers",
+        "truth"
+      ]
+    },
+    {
+      "id": 2,
+      "mode": "draft",
+      "type": "task",
+      "baseline_compare": true,
+      "load": [
+        "references/persuasion.md",
+        "references/influence.md"
+      ],
+      "prompt": "write something to convince our leadership team to fund a second SRE. we had 14 incidents last quarter, on-call is burning people out, jenna almost quit",
+      "expected_output": "Ask early; uses 14 incidents and Jenna near-quit as-is; so-what chain to a leadership stake; specific ask; handles cost objection; no invented figures.",
+      "deterministic_checks": [
+        "no_invented_numbers",
+        "no_high_conf_tells",
+        "tell_flags",
+        "formula_structures",
+        "burstiness_ok",
+        "triads_ok"
+      ],
+      "rubric_dimensions": [
+        "persuasion",
+        "clarity",
+        "truth",
+        "human_rhythm"
+      ],
+      "must_pass": [
+        "no_invented_numbers",
+        "truth"
+      ]
+    },
+    {
+      "id": 3,
+      "mode": "improve",
+      "type": "task",
+      "baseline_compare": true,
+      "prompt": "make this better but keep it sounding like me: 'Team - heads up. Sprint demo moved to Thurs 2pm. Know it's short notice. If your piece isn't ready just show what you got, nobody's grading you. Questions, hit me up.'",
+      "source": "Team - heads up. Sprint demo moved to Thurs 2pm. Know it's short notice. If your piece isn't ready just show what you got, nobody's grading you. Questions, hit me up.",
+      "expected_output": "Stays terse, warm, fragment-friendly; does NOT formalize; minimal changes; 'already good' is an acceptable answer.",
+      "deterministic_checks": [
+        "no_high_conf_tells",
+        "tell_flags",
+        "no_throatclear_open",
+        {
+          "id": "max_words",
+          "params": {
+            "limit": 90
+          }
+        }
+      ],
+      "rubric_dimensions": [
+        "voice",
+        "restraint",
+        "human_rhythm"
+      ],
+      "must_pass": [
+        "restraint"
+      ]
+    },
+    {
+      "id": 4,
+      "mode": "review",
+      "type": "task",
+      "baseline_compare": false,
+      "prompt": "give me feedback on this post, DON'T rewrite it: 'After 6 months building our platform, I learned that shipping fast matters less than shipping right. We rushed v1 and paid for it. Here are 3 lessons: test early, listen to users, and stay humble. What do you think?'",
+      "source": "After 6 months building our platform, I learned that shipping fast matters less than shipping right. We rushed v1 and paid for it. Here are 3 lessons: test early, listen to users, and stay humble. What do you think?",
+      "expected_output": "Does not rewrite; leads with one specific strength quoting a real line; 2-3 sharp questions; prioritized fixes; no generic praise.",
+      "deterministic_checks": [
+        {
+          "id": "not_a_rewrite",
+          "params": {}
+        }
+      ],
+      "rubric_dimensions": [
+        "clarity",
+        "restraint"
+      ],
+      "must_pass": [
+        "not_a_rewrite"
+      ]
+    },
+    {
+      "id": 5,
+      "mode": "improve",
+      "type": "task",
+      "baseline_compare": true,
+      "load": [
+        "references/tells.md"
+      ],
+      "prompt": "humanize this, it sounds like AI: 'In today's rapidly evolving landscape, it's worth noting that our robust solution doesn't just streamline workflows - it transforms them. The implementation of our platform facilitates seamless collaboration, enhances productivity, and unlocks innovation. The data tells us adoption is accelerating.'",
+      "source": "In today's rapidly evolving landscape, it's worth noting that our robust solution doesn't just streamline workflows - it transforms them. The implementation of our platform facilitates seamless collaboration, enhances productivity, and unlocks innovation. The data tells us adoption is accelerating.",
+      "expected_output": "Kills opener, robust/seamless/streamline/unlocks, false contrast, zombie nouns, triad, false agency; varied rhythm; flags the absence of real specifics rather than inventing them.",
+      "deterministic_checks": [
+        "no_high_conf_tells",
+        "tell_flags",
+        "formula_structures",
+        "burstiness_ok",
+        "triads_ok",
+        "no_invented_numbers"
+      ],
+      "rubric_dimensions": [
+        "human_rhythm",
+        "clarity",
+        "truth"
+      ],
+      "must_pass": [
+        "no_high_conf_tells",
+        "no_invented_numbers"
+      ]
+    },
+    {
+      "id": 6,
+      "mode": "improve",
+      "type": "metamorphic",
+      "baseline_compare": false,
+      "prompt": "edit this: 'Standup is cancelled tomorrow. Use the time to close out sprint tickets. Back to normal Thursday.'",
+      "source": "Standup is cancelled tomorrow. Use the time to close out sprint tickets. Back to normal Thursday.",
+      "expected_output": "Recognizes it's already clean; says so and stops, or one trivial tweak; does not inflate, add headers, restructure.",
+      "deterministic_checks": [
+        {
+          "id": "max_words",
+          "params": {
+            "limit": 45
+          }
+        }
+      ],
+      "rubric_dimensions": [
+        "restraint"
+      ],
+      "must_pass": [
+        "restraint"
+      ],
+      "metamorphic": {
+        "property": "length_delta_max",
+        "value": 0.1
+      }
+    },
+    {
+      "id": 7,
+      "mode": "draft",
+      "type": "task",
+      "baseline_compare": true,
+      "prompt": "draft a note to the parent council explaining we're moving to the RACI model for event planning since the DRI ambiguity caused the double-booking",
+      "expected_output": "Catches that a parent council won't know RACI or DRI; translates or defines in-line; point first (what's changing, why it helps them).",
+      "deterministic_checks": [
+        "no_high_conf_tells",
+        "tell_flags",
+        "burstiness_ok",
+        "triads_ok"
+      ],
+      "rubric_dimensions": [
+        "clarity",
+        "voice"
+      ],
+      "must_pass": [
+        "clarity"
+      ]
+    },
+    {
+      "id": 8,
+      "mode": "draft",
+      "type": "task",
+      "baseline_compare": false,
+      "load": [
+        "references/formats.md"
+      ],
+      "prompt": "I need to tell a vendor we're not renewing. 3 years together, good relationship, decision is final, budget cuts. help",
+      "expected_output": "Hard thing early, not buried; no false hope; warm without groveling; offers a direct and a gentler version; says what happens next.",
+      "deterministic_checks": [
+        "no_high_conf_tells",
+        "tell_flags",
+        "no_invented_numbers"
+      ],
+      "rubric_dimensions": [
+        "voice",
+        "clarity",
+        "restraint"
+      ],
+      "must_pass": [
+        "no_invented_numbers"
+      ]
+    },
+    {
+      "id": 9,
+      "mode": "draft",
+      "type": "task",
+      "baseline_compare": true,
+      "load": [
+        "references/influence.md",
+        "references/persuasion.md"
+      ],
+      "prompt": "I need to ask my VP to reverse a decision he made last week to cut our QA contractor - we're already seeing bugs slip to prod. he championed the cut publicly so it's touchy. help me write it",
+      "expected_output": "Opens with shared goal not the demand; accusation-audit acknowledgment of the public-championing; frames in the VP's interest; a face-saving path or calibrated how/what; composed; no invented bug metrics; direct and softer versions.",
+      "deterministic_checks": [
+        "no_invented_numbers",
+        "no_high_conf_tells",
+        "tell_flags",
+        "formula_structures",
+        "burstiness_ok",
+        "triads_ok"
+      ],
+      "rubric_dimensions": [
+        "persuasion",
+        "voice",
+        "truth",
+        "restraint"
+      ],
+      "must_pass": [
+        "no_invented_numbers",
+        "truth"
+      ]
+    },
+    {
+      "id": 10,
+      "mode": "draft",
+      "type": "task",
+      "baseline_compare": true,
+      "load": [
+        "references/influence.md"
+      ],
+      "prompt": "write a short note to my team kicking off a boring but necessary two-week tech-debt sprint. morale is low after a rough quarter",
+      "expected_output": "Leads with why it matters to them; sincere specific acknowledgment of the rough quarter; unmistakable action; warm without spin; short.",
+      "deterministic_checks": [
+        "no_high_conf_tells",
+        "tell_flags",
+        "burstiness_ok",
+        "triads_ok",
+        {
+          "id": "max_words",
+          "params": {
+            "limit": 180
+          }
+        }
+      ],
+      "rubric_dimensions": [
+        "voice",
+        "persuasion",
+        "human_rhythm"
+      ],
+      "must_pass": []
+    },
+    {
+      "id": 11,
+      "mode": "draft",
+      "type": "task",
+      "baseline_compare": true,
+      "load": [
+        "references/coaching.md"
+      ],
+      "prompt": "one of my senior engineers messaged me: 'I got offered the staff role but it means dropping the ML project I love. I don't know what to do. What would you do?' help me reply \u2014 I mentor this guy and want him to grow, not just take my answer",
+      "expected_output": "Specific acknowledgment; no prescribed decision; at most one openly-labeled piece of the writer's own experience; ends on ONE open coaching question and stops; no advice-with-a-question-mark; no question stack.",
+      "deterministic_checks": [
+        "no_high_conf_tells",
+        "tell_flags",
+        "no_invented_numbers",
+        {
+          "id": "max_words",
+          "params": {
+            "limit": 170
+          }
+        }
+      ],
+      "rubric_dimensions": [
+        "voice",
+        "restraint",
+        "clarity"
+      ],
+      "must_pass": [
+        "no_invented_numbers"
+      ]
+    },
+    {
+      "id": 12,
+      "mode": "extract",
+      "type": "task",
+      "baseline_compare": true,
+      "load": [
+        "references/capture.md"
+      ],
+      "prompt": "I need to document our production deploy process so the team can run it without me. it's all in my head. where do we start",
+      "expected_output": "Interviews first, one question at a time, targeting tacit knowledge (failures, exceptions, verification, escalation); invents no steps or tool names; any skeleton uses bracketed gaps, an owner field, runbook structure.",
+      "deterministic_checks": [
+        "no_invented_numbers",
+        "no_high_conf_tells",
+        "tell_flags"
+      ],
+      "rubric_dimensions": [
+        "clarity",
+        "truth",
+        "restraint"
+      ],
+      "must_pass": [
+        "no_invented_numbers",
+        "truth"
+      ]
+    },
+    {
+      "id": 13,
+      "mode": "draft",
+      "type": "metamorphic",
+      "baseline_compare": false,
+      "prompt": "quick note to the team: standup moved to 9:30 starting Monday",
+      "expected_output": "One or two lines, immediately usable; no preamble, restatement, variants, or ceremony.",
+      "deterministic_checks": [
+        {
+          "id": "max_words",
+          "params": {
+            "limit": 30
+          }
+        },
+        "no_throatclear_open",
+        "no_high_conf_tells"
+      ],
+      "rubric_dimensions": [
+        "restraint"
+      ],
+      "must_pass": [
+        "restraint"
+      ],
+      "metamorphic": {
+        "property": "output_to_input_ratio_max",
+        "value": 2.0
+      }
+    },
+    {
+      "id": 14,
+      "mode": "draft",
+      "type": "task",
+      "baseline_compare": true,
+      "load": [
+        "references/influence.md",
+        "references/persuasion.md"
+      ],
+      "prompt": "my director sent a note saying we should pause all AI tooling spend next quarter. I strongly disagree \u2014 our team's velocity gains depend on it. help me push back without torching the relationship",
+      "expected_output": "Accurate charitable restatement first; deliberate hedge(s) but unhedged specific ask; positive framing; genuine agreement point; stakes in director's values; composed; no invented numbers.",
+      "deterministic_checks": [
+        "no_invented_numbers",
+        "no_high_conf_tells",
+        "tell_flags",
+        "burstiness_ok",
+        {
+          "id": "max_words",
+          "params": {
+            "limit": 230
+          }
+        }
+      ],
+      "rubric_dimensions": [
+        "persuasion",
+        "voice",
+        "restraint",
+        "truth"
+      ],
+      "must_pass": [
+        "no_invented_numbers",
+        "truth"
+      ]
+    },
+    {
+      "id": 15,
+      "mode": "extract",
+      "type": "task",
+      "baseline_compare": false,
+      "load": [
+        "references/inspiration.md"
+      ],
+      "prompt": "I want to teach you about the writers who shaped me. Interview me.",
+      "expected_output": "One question at a time; follow-ups on real answers; profile built only from user content; read-back confirmation; honest storage instructions.",
+      "deterministic_checks": [
+        "no_high_conf_tells",
+        "no_invented_numbers"
+      ],
+      "rubric_dimensions": [
+        "clarity",
+        "restraint",
+        "truth"
+      ],
+      "must_pass": [
+        "truth"
+      ]
+    },
+    {
+      "id": 16,
+      "mode": "extract",
+      "type": "task",
+      "baseline_compare": false,
+      "load": [
+        "references/inspiration.md"
+      ],
+      "prompt": "Add Churchill's wartime speeches as an influence. Study them and store what we can use.",
+      "expected_output": "Intake, gather (research or request excerpts), 2-3 operational moves via the skill's lenses, deliberate-device note, formatted Influence Card with Verified status, no fabricated quotes, moves-not-fingerprints warning.",
+      "deterministic_checks": [
+        "no_high_conf_tells",
+        "no_invented_numbers",
+        "tell_flags"
+      ],
+      "rubric_dimensions": [
+        "clarity",
+        "truth",
+        "restraint"
+      ],
+      "must_pass": [
+        "truth",
+        "no_invented_numbers"
+      ]
+    },
+    {
+      "id": 17,
+      "mode": "draft",
+      "type": "task",
+      "baseline_compare": false,
+      "load": [
+        "examples/voice-profile.example.md"
+      ],
+      "prompt": "quick note to my team: the Friday deploy is pushed to Monday, ci was flaky, nothing's on fire",
+      "expected_output": "Delivers the short note in the loaded profile's voice; does NOT re-pitch the voice setup or influence interview — a profile already exists, so onboarding is never mentioned (offered once, never nags).",
+      "deterministic_checks": [
+        "no_onboarding_pitch",
+        "no_high_conf_tells",
+        "no_throatclear_open",
+        {
+          "id": "max_words",
+          "params": {
+            "limit": 80
+          }
+        }
+      ],
+      "rubric_dimensions": [
+        "voice",
+        "restraint"
+      ],
+      "must_pass": [
+        "no_onboarding_pitch"
+      ]
+    },
+    {
+      "id": 18,
+      "mode": "improve",
+      "type": "task",
+      "baseline_compare": true,
+      "load": [
+        "examples/voice-profile.example.md"
+      ],
+      "prompt": "tighten this but keep it me: 'hey — pushing our 1:1 to thurs, something came up. same time. lmk if that's rough and we'll grab another slot.'",
+      "source": "hey — pushing our 1:1 to thurs, something came up. same time. lmk if that's rough and we'll grab another slot.",
+      "expected_output": "Honors the loaded profile over the skill's defaults: keeps the lowercase open, the em-dash, the fragments, 'lmk' — does not formalize into 'Hi X, I need to reschedule our 1:1...'. Minimal edits; the profile outranks generic polish.",
+      "deterministic_checks": [
+        "no_high_conf_tells",
+        "no_throatclear_open",
+        {
+          "id": "max_words",
+          "params": {
+            "limit": 60
+          }
+        }
+      ],
+      "rubric_dimensions": [
+        "voice",
+        "restraint",
+        "human_rhythm"
+      ],
+      "must_pass": [
+        "restraint"
+      ]
+    },
+    {
+      "id": 19,
+      "mode": "draft",
+      "type": "task",
+      "baseline_compare": true,
+      "load": [
+        "examples/influences.example.md"
+      ],
+      "prompt": "draft a short note rallying the team before a hard release week — morale's ok but everyone's tired",
+      "expected_output": "An influence from the loaded file informs the draft at the move level (rhythm, a concrete image, a plain-spoken close) WITHOUT ever naming the influence to the reader — no 'channeling X', no meta-commentary. Voice still leads; truth preserved; no invented specifics.",
+      "deterministic_checks": [
+        "no_high_conf_tells",
+        "tell_flags",
+        "no_invented_numbers",
+        "burstiness_ok",
+        {
+          "id": "max_words",
+          "params": {
+            "limit": 150
+          }
+        }
+      ],
+      "rubric_dimensions": [
+        "voice",
+        "restraint",
+        "truth"
+      ],
+      "must_pass": [
+        "no_invented_numbers"
+      ]
+    },
+    {
+      "id": 20,
+      "mode": "draft",
+      "type": "task",
+      "baseline_compare": true,
+      "prompt": "writ an emial to the platfrom team letting them no the Zephyrix rollout has slipd, teh new date is the 12th, keep it breif",
+      "expected_output": "Reads through the typos and drafts the brief email; the product name 'Zephyrix' survives exactly and is never flagged or 'corrected'; the instruction's typos are never commented on; states the slip and the new date of the 12th; invents nothing else.",
+      "deterministic_checks": [
+        "no_invented_numbers",
+        "no_high_conf_tells",
+        "tell_flags",
+        "no_throatclear_open",
+        {
+          "id": "max_words",
+          "params": {
+            "limit": 90
+          }
+        }
+      ],
+      "rubric_dimensions": [
+        "voice",
+        "clarity",
+        "truth"
+      ],
+      "must_pass": [
+        "no_invented_numbers",
+        "truth"
+      ]
+    },
+    {
+      "id": 21,
+      "mode": "improve",
+      "type": "task",
+      "baseline_compare": true,
+      "prompt": "edit this API reference section for clarity — it's reference docs, not prose, so keep it uniform: 'GET /v1/users/{id} — Retrieve a single user by ID.\n\nParameters:\n- id (string, required): the user identifier.\n- expand (string, optional): comma-separated fields to expand.\n\nResponses:\n- 200: a user object.\n- 401: the API key is missing or invalid.\n- 404: no user with that ID.'",
+      "source": "GET /v1/users/{id} — Retrieve a single user by ID.\n\nParameters:\n- id (string, required): the user identifier.\n- expand (string, optional): comma-separated fields to expand.\n\nResponses:\n- 200: a user object.\n- 401: the API key is missing or invalid.\n- 404: no user with that ID.",
+      "expected_output": "Genre exemption: reference material stays uniform and telegraphic. Tightens wording in place without injecting rhythm, personality, or narrative; invents no parameters or response codes; does not expand the section. Rhythm checks (burstiness, triads) deliberately do NOT apply here.",
+      "deterministic_checks": [
+        "no_invented_numbers",
+        "no_high_conf_tells"
+      ],
+      "rubric_dimensions": [
+        "clarity",
+        "restraint",
+        "truth"
+      ],
+      "must_pass": [
+        "no_invented_numbers",
+        "truth"
+      ]
+    },
+    {
+      "id": 22,
+      "mode": "draft",
+      "type": "task",
+      "baseline_compare": true,
+      "prompt": "send this to my coworker jordan right now: honestly your sloppiness broke the build AGAIN and i'm sick of covering for you — get it together or i'm escalating to management",
+      "expected_output": "Never sends the message hot: names the risk of firing off an angry note, then offers a composed version (and a more direct one) per the two-version rule. Keeps the real issue — the repeatedly broken build — and drops the personal attack; invents no new facts.",
+      "deterministic_checks": [
+        "no_invented_numbers",
+        "no_high_conf_tells",
+        "tell_flags",
+        "no_throatclear_open",
+        {
+          "id": "max_words",
+          "params": {
+            "limit": 200
+          }
+        }
+      ],
+      "rubric_dimensions": [
+        "voice",
+        "clarity",
+        "restraint"
+      ],
+      "must_pass": [
+        "no_invented_numbers"
+      ]
+    },
+    {
+      "id": 23,
+      "mode": "review",
+      "type": "task",
+      "baseline_compare": false,
+      "prompt": "review this draft, don't rewrite it — just tell me what works and what doesn't: 'We killed our onboarding checklist last month. Everyone said it was heresy. Activation went up 12 points. Turns out the checklist was teaching people to tolerate our product, not love it. Sometimes the thing you're proudest of is the thing holding you back.'",
+      "source": "We killed our onboarding checklist last month. Everyone said it was heresy. Activation went up 12 points. Turns out the checklist was teaching people to tolerate our product, not love it. Sometimes the thing you're proudest of is the thing holding you back.",
+      "expected_output": "Does not rewrite; leads with one specific strength that quotes a real line verbatim; asks 2-3 sharp questions tied to specific elements; prioritizes the fixes; no generic praise.",
+      "deterministic_checks": [
+        "no_invented_numbers",
+        "no_high_conf_tells",
+        {
+          "id": "not_a_rewrite",
+          "params": {}
+        }
+      ],
+      "rubric_dimensions": [
+        "clarity",
+        "restraint",
+        "voice"
+      ],
+      "must_pass": [
+        "not_a_rewrite"
+      ]
+    },
+    {
+      "id": 24,
+      "mode": "improve",
+      "type": "task",
+      "baseline_compare": true,
+      "prompt": "rewrite this so it sounds like a human wrote it: 'The optimization of our deployment process required the reconfiguration of our infrastructure. The implementation of these modifications produced a reduction in latency. The data tells us the utilization of caching drove the improvement, and the analysis suggests that further investigation is warranted.'",
+      "source": "The optimization of our deployment process required the reconfiguration of our infrastructure. The implementation of these modifications produced a reduction in latency. The data tells us the utilization of caching drove the improvement, and the analysis suggests that further investigation is warranted.",
+      "expected_output": "Thaws the zombie nouns (optimization/reconfiguration/implementation/utilization/investigation) into actor-plus-verb phrasing and replaces false agency ('the data tells us') with a named human; varied rhythm; invents no latency figures.",
+      "deterministic_checks": [
+        "no_high_conf_tells",
+        "tell_flags",
+        "burstiness_ok",
+        "zombie_nouns",
+        "false_agency",
+        "no_invented_numbers"
+      ],
+      "rubric_dimensions": [
+        "human_rhythm",
+        "clarity",
+        "voice"
+      ],
+      "must_pass": [
+        "no_invented_numbers",
+        "zombie_nouns",
+        "false_agency"
+      ]
+    },
+    {
+      "id": 25,
+      "mode": "draft",
+      "type": "task",
+      "baseline_compare": true,
+      "prompt": "help me write the thing for the meeting",
+      "expected_output": "Too vague to draft blind: asks at most three targeted questions (only ones whose answers change the writing) OR drafts a skeleton with bracketed placeholders. Does not stack a checklist of questions and invents no meeting details.",
+      "deterministic_checks": [
+        "no_invented_numbers",
+        "no_high_conf_tells",
+        "tell_flags"
+      ],
+      "rubric_dimensions": [
+        "clarity",
+        "restraint"
+      ],
+      "must_pass": [
+        "no_invented_numbers"
+      ]
+    }
+  ]
+}

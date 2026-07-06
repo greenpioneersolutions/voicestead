@@ -1,0 +1,1 @@
+Here's a tighter version. After 6 months building our platform, I learned that shipping fast matters less than shipping right. We rushed v1 and paid for it. Here are 3 lessons: test early, listen to users, stay humble. What do you think?

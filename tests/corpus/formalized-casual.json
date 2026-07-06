@@ -1,0 +1,8 @@
+{
+  "name": "formalized-casual (corporate rewrite of a terse note — must fail tell_flags + no_throatclear_open)",
+  "output_file": "formalized-casual.txt",
+  "prompt": "make this better but keep it sounding like me: 'Team - heads up. Sprint demo moved to Thurs 2pm. Know it's short notice. If your piece isn't ready just show what you got, nobody's grading you. Questions, hit me up.'",
+  "source": "Team - heads up. Sprint demo moved to Thurs 2pm. Know it's short notice. If your piece isn't ready just show what you got, nobody's grading you. Questions, hit me up.",
+  "checks": ["no_invented_numbers", "no_high_conf_tells", "tell_flags", "formula_structures", "no_throatclear_open"],
+  "expect": {"no_invented_numbers": true, "no_high_conf_tells": true, "tell_flags": false, "formula_structures": true, "no_throatclear_open": false}
+}

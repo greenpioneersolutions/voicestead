@@ -1,0 +1,5 @@
+Subject: Migration slipping to the 28th
+
+The migration will land two weeks late, on the 28th. We found on Tuesday that the vendor's API docs were wrong, so the integration we'd already built has to be reworked.
+
+Nothing else in the release is affected, and I'll have the corrected plan to you by Thursday. Happy to walk through it sooner if useful.

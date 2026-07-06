@@ -1,0 +1,200 @@
+#!/usr/bin/env python3
+"""Guard-the-guards: prove the tooling FAILS when it should.
+
+Every check in this repo is only as trustworthy as its ability to go red. These tests
+tamper with a temp copy of the tree and assert the relevant script exits non-zero — the
+canary being a curly-apostrophe slop injection that a naive matcher would wave through.
+
+  python -m pytest tests/checks/test_scripts.py -q
+
+No API key, no network. Runs on Python 3.9 and 3.12.
+"""
+import os
+import shutil
+import subprocess
+import sys
+import zipfile
+
+import pytest
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+REPO = os.path.dirname(os.path.dirname(HERE))
+_IGNORE = shutil.ignore_patterns("__pycache__", "*.pyc", ".pytest_cache", "*.skill", "results")
+
+
+def _copy(dst, *items):
+    """Copy selected top-level repo items (dirs or files) into dst; return dst."""
+    os.makedirs(dst, exist_ok=True)
+    for item in items:
+        src = os.path.join(REPO, item)
+        target = os.path.join(dst, item)
+        if os.path.isdir(src):
+            shutil.copytree(src, target, ignore=_IGNORE)
+        else:
+            os.makedirs(os.path.dirname(target), exist_ok=True)
+            shutil.copy2(src, target)
+    return dst
+
+
+def _run(script_relpath, *args, cwd=None, env=None):
+    """Run a repo script (path relative to REPO or an absolute path) via subprocess."""
+    script = script_relpath if os.path.isabs(script_relpath) else os.path.join(REPO, script_relpath)
+    full_env = dict(os.environ)
+    if env:
+        full_env.update(env)
+    return subprocess.run(
+        [sys.executable, script, *args],
+        cwd=cwd or REPO, env=full_env, capture_output=True, text=True,
+    )
+
+
+# --------------------------------------------------------------------------- package_skill
+
+def test_package_builds_and_excludes_personal(tmp_path):
+    root = _copy(str(tmp_path / "repo"), "scripts", "skills")
+    skill = os.path.join(root, "skills", "voicestead")
+    # Plant personal-by-design files at the skill root.
+    open(os.path.join(skill, "voice-profile.md"), "w").write("# my private voice\n")
+    open(os.path.join(skill, "influences.md"), "w").write("# my private influences\n")
+    out = str(tmp_path / "out.skill")
+
+    r = _run(os.path.join(root, "scripts", "package_skill.py"), "voicestead", "--out", out)
+    assert r.returncode == 0, r.stderr + r.stdout
+    assert "excluding personal file" in r.stdout
+
+    names = zipfile.ZipFile(out).namelist()
+    assert "voicestead/SKILL.md" in names
+    # The shippable template MUST survive.
+    assert "voicestead/examples/voice-profile.example.md" in names
+    # The planted personal files MUST NOT ship.
+    leaked = [n for n in names if os.path.basename(n) in ("voice-profile.md", "influences.md")]
+    assert leaked == [], "personal files leaked into archive: %s" % leaked
+
+
+def test_package_corrupt_dir_exits1(tmp_path):
+    root = _copy(str(tmp_path / "repo"), "scripts", "skills")
+    os.remove(os.path.join(root, "skills", "voicestead", "SKILL.md"))
+    r = _run(os.path.join(root, "scripts", "package_skill.py"), "voicestead",
+             "--out", str(tmp_path / "out.skill"))
+    assert r.returncode == 1, r.stdout + r.stderr
+
+
+# --------------------------------------------------------------------------- validate_repo
+
+def test_validate_real_repo_green():
+    r = _run("tests/checks/validate_repo.py")
+    assert r.returncode == 0, r.stdout + r.stderr
+
+
+def _validate_copy(tmp_path):
+    return _copy(str(tmp_path / "repo"), "scripts", "skills", "tests", ".claude-plugin")
+
+
+def _run_copied_validate(root):
+    return _run(os.path.join(root, "tests", "checks", "validate_repo.py"), cwd=root)
+
+
+def test_validate_desynced_cases_evals_exits1(tmp_path):
+    root = _validate_copy(tmp_path)
+    ev = os.path.join(root, "skills", "voicestead", "evals", "evals.json")
+    import json
+    d = json.load(open(ev))
+    d["evals"].pop()  # drop the last eval so cases.json and evals.json desync
+    json.dump(d, open(ev, "w"), indent=2)
+    r = _run_copied_validate(root)
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert "mismatch" in r.stdout
+
+
+def test_validate_broken_frontmatter_exits1(tmp_path):
+    root = _validate_copy(tmp_path)
+    skill_md = os.path.join(root, "skills", "voicestead", "SKILL.md")
+    text = open(skill_md).read().replace("name: voicestead", "name: TOTALLY-BROKEN")
+    assert "TOTALLY-BROKEN" in text
+    open(skill_md, "w").write(text)
+    r = _run_copied_validate(root)
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert "name is not" in r.stdout
+
+
+def test_validate_unknown_check_id_exits1(tmp_path):
+    root = _validate_copy(tmp_path)
+    cases = os.path.join(root, "tests", "cases.json")
+    import json
+    d = json.load(open(cases))
+    d["evals"][0]["deterministic_checks"].append("no_invented_numers")  # typo'd gate
+    json.dump(d, open(cases, "w"), indent=2)
+    r = _run_copied_validate(root)
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert "unknown deterministic check" in r.stdout
+
+
+def test_validate_pyyaml_missing_exits1(tmp_path):
+    # Shim pyyaml out of existence; the frontmatter check must fail hard, never skip.
+    shim = tmp_path / "shim"
+    shim.mkdir()
+    (shim / "yaml.py").write_text("raise ImportError('pyyaml shimmed out for the test')\n")
+    r = _run("tests/checks/validate_repo.py", env={"PYTHONPATH": str(shim)})
+    assert r.returncode != 0, r.stdout + r.stderr
+    assert "pyyaml" in (r.stdout + r.stderr)
+
+
+# --------------------------------------------------------------------------- corpus (run_checks)
+
+def test_corpus_real_green():
+    r = _run("tests/checks/run_checks.py", "--corpus", os.path.join(REPO, "tests", "corpus"),
+             cwd=os.path.join(REPO, "tests", "checks"))
+    assert r.returncode == 0, r.stdout + r.stderr
+
+
+def test_corpus_curly_apostrophe_canary(tmp_path):
+    # THE CANARY: the exact unicode variant ("today’s", curly apostrophe) that a
+    # non-normalizing matcher lets slip. Injecting it must turn the corpus red.
+    corpus = str(tmp_path / "corpus")
+    shutil.copytree(os.path.join(REPO, "tests", "corpus"), corpus)
+    good = os.path.join(corpus, "good-email.txt")
+    slop = ("In today’s rapidly evolving landscape, it’s not just about the migration"
+            "—it’s about connection. Let’s delve into it.\n\n")
+    original = open(good, encoding="utf-8").read()
+    open(good, "w", encoding="utf-8").write(slop + original)
+
+    r = _run("tests/checks/run_checks.py", "--corpus", corpus,
+             cwd=os.path.join(REPO, "tests", "checks"))
+    assert r.returncode == 1, "canary failed to fire:\n" + r.stdout + r.stderr
+
+
+# --------------------------------------------------------------------------- dogfood
+
+def test_dogfood_real_green():
+    r = _run("tests/checks/dogfood.py", "--root", REPO, cwd=os.path.join(REPO, "tests", "checks"))
+    assert r.returncode == 0, r.stdout + r.stderr
+
+
+def test_dogfood_injected_slop_exits1(tmp_path):
+    root = _copy(str(tmp_path / "repo"), "skills")
+    ref = os.path.join(root, "skills", "voicestead", "references", "voice.md")
+    with open(ref, "a", encoding="utf-8") as fh:
+        fh.write("\n\nAt the end of the day, it’s worth noting that we must leverage synergy.\n")
+    r = _run("tests/checks/dogfood.py", "--root", root, cwd=os.path.join(REPO, "tests", "checks"))
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert "DOGFOOD FAILED" in r.stdout
+
+
+# --------------------------------------------------------------------------- check_placeholders
+
+def test_check_placeholders_strict_exits1(tmp_path):
+    # Build the sentinel at runtime so this test file doesn't trip the guard on itself.
+    token = "REPLACE" + "_ME_OWNER"
+    work = tmp_path / "workdir"
+    work.mkdir()
+    (work / "config.txt").write_text(f"owner = {token}\n")
+    strict = _run("scripts/check_placeholders.py", "--strict", cwd=str(work))
+    assert strict.returncode == 1, strict.stdout + strict.stderr
+    assert token in strict.stdout
+    # Report mode (no --strict) finds the same placeholder but exits 0.
+    report = _run("scripts/check_placeholders.py", cwd=str(work))
+    assert report.returncode == 0, report.stdout + report.stderr
+
+
+if __name__ == "__main__":
+    sys.exit(pytest.main([__file__, "-q"]))

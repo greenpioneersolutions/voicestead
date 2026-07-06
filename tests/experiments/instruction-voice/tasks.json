@@ -1,0 +1,24 @@
+{
+  "tasks": [
+    {"id": "slip-email", "mode": "draft", "intended_register": "professional, calm, boss-facing",
+     "facts": "Email my boss Daniel: the Atlas migration slips two weeks, new date is the 28th. We found out Tuesday the vendor API docs were wrong. Goal: keep his confidence.",
+     "constraints": ["Under 120 words.", "Include a subject line.", "New date (the 28th) in the first sentence.", "State the cause factually, no groveling."],
+     "must_include": ["28th", "Tuesday"], "max_words": 130, "has_subject": true,
+     "typo_targets": {"Atlas": "Atlsa", "28th": "82th", "Daniel": "Daneil"}},
+    {"id": "sre-pitch", "mode": "draft", "intended_register": "leadership-facing, composed, evidence-led",
+     "facts": "Convince our leadership team to fund a second SRE. We had 14 incidents last quarter. On-call is burning people out. Jenna almost quit.",
+     "constraints": ["The ask in the first two sentences.", "Use the 14-incidents figure and the Jenna detail as given.", "Handle the cost objection.", "Under 220 words."],
+     "must_include": ["14", "Jenna"], "max_words": 240, "has_subject": false,
+     "typo_targets": {"14": "41", "Jenna": "Jemma", "SRE": "SER"}},
+    {"id": "humanize", "mode": "improve", "intended_register": "plain professional",
+     "facts": "Rewrite so it sounds human: 'In today's rapidly evolving landscape, it's worth noting that our robust solution doesn't just streamline workflows - it transforms them. The implementation of our platform facilitates seamless collaboration, enhances productivity, and unlocks innovation.'",
+     "constraints": ["No invented statistics — flag or placeholder missing specifics.", "Under 90 words.", "Kill the AI tells."],
+     "must_include": [], "max_words": 100, "has_subject": false,
+     "typo_targets": {"platform": "platfrom", "workflows": "workflaws"}},
+    {"id": "kickoff-note", "mode": "draft", "intended_register": "warm, direct, team-facing",
+     "facts": "Short note to my team kicking off a boring but necessary two-week tech-debt sprint. Morale is low after a rough quarter.",
+     "constraints": ["Lead with why it matters to them.", "Acknowledge the rough quarter specifically, no hollow cheerleading.", "Under 150 words.", "Action unmistakable."],
+     "must_include": ["two-week"], "max_words": 160, "has_subject": false,
+     "typo_targets": {"two-week": "tow-weak", "sprint": "spirnt"}}
+  ]
+}

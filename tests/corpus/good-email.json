@@ -1,0 +1,7 @@
+{
+  "name": "good-email (clean, on-point, no fabrication)",
+  "output_file": "good-email.txt",
+  "prompt": "email my boss the migration slips two weeks to the 28th, found out Tuesday the vendor API docs were wrong, keep his confidence",
+  "checks": ["no_invented_numbers","no_high_conf_tells","tell_flags","formula_structures","burstiness_ok","triads_ok","no_throatclear_open","no_onboarding_pitch",{"id":"has_subject"},{"id":"max_words","params":{"limit":120}}],
+  "expect": {"no_invented_numbers": true, "no_high_conf_tells": true, "no_throatclear_open": true, "has_subject": true, "no_onboarding_pitch": true, "burstiness_ok": true}
+}

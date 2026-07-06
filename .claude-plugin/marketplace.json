@@ -1,0 +1,29 @@
+{
+  "name": "voicestead",
+  "owner": {
+    "name": "Green Pioneer Solutions"
+  },
+  "description": "Voicestead -- a research-backed writing skill for Claude, with a public eval harness.",
+  "plugins": [
+    {
+      "name": "voicestead",
+      "source": "./",
+      "description": "Turn rough thoughts into finished writing that reads as genuinely human -- in your voice, without the AI tells.",
+      "version": "0.9.0",
+      "author": {
+        "name": "Green Pioneer Solutions"
+      },
+      "homepage": "https://github.com/greenpioneersolutions/voicestead",
+      "repository": "https://github.com/greenpioneersolutions/voicestead",
+      "license": "MIT",
+      "category": "writing",
+      "keywords": [
+        "writing",
+        "editing",
+        "humanize",
+        "voice",
+        "claude-skill"
+      ]
+    }
+  ]
+}
