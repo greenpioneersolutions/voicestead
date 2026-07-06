@@ -309,6 +309,33 @@ def test_per_section_tell_rise_property_unit():
     assert "per_section_tell_rise_max" in rec["hard_fail"]
 
 
+def test_per_section_tell_rise_grades_headings_too():
+    # NEGATIVE-PATH CANARY for the heading-prepend rule: the only tells live in the
+    # later section's H2 heading; a build that grades bodies alone waves it through.
+    run_eval = _import_run_eval()
+    case = {"deterministic_checks": [],
+            "metamorphic": {"property": "per_section_tell_rise_max", "value": 1.0}}
+    heading_drift = ("## Plan\n\nWe ship on Friday and tell the team.\n\n"
+                     "## Leveraging seamless synergy\n\nShort note here.")
+    rec = run_eval.tier1(heading_drift, case, prompt="x")
+    assert rec["metamorphic"]["passed"] is False
+    assert "per_section_tell_rise_max" in rec["hard_fail"]
+
+
+def test_per_section_tell_rise_tolerates_one_contextual_tell():
+    # the false-positive guard: one literal-sense tell-word in a short later section
+    # is the judge's call, not a release-gate failure — under the 200-word floor a
+    # single tell rates 1.0/200w, which never exceeds a rise bound of 1.0
+    run_eval = _import_run_eval()
+    case = {"deterministic_checks": [],
+            "metamorphic": {"property": "per_section_tell_rise_max", "value": 1.0}}
+    family = ("## Week one\n\nWe unpacked the boxes and met the neighbors.\n\n"
+              "## Week two\n\nWe signed the papers to become foster parents.")
+    rec = run_eval.tier1(family, case, prompt="x")
+    assert rec["metamorphic"]["passed"] is True
+    assert rec["hard_fail"] == []
+
+
 _HANDBOOK_PROMPT = ("turn these outline notes into one doc with '## ' markdown sections "
                     "for the team handbook: how we onboard, how we run standups, how we "
                     "ship, how we handle incidents, how we run retros. keep my plain "

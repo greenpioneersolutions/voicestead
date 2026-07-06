@@ -27,7 +27,7 @@ What's mechanically verifiable, and how:
 
 - **`no_invented_numbers`** *(hard — the Truth rule)*. Extracts every number, %, and $ figure from the output and checks each appears in the prompt/context. A figure in the output that isn't in the input is a candidate fabrication. Placeholders like `[X]` pass. This is the single most important automated guard — a writing skill that invents statistics is dangerous, and this catches it cheaply.
 - **`no_high_conf_tells`** *(hard)*. Scans for the handful of phrases that are almost never justified: "in today's rapidly evolving," "it's worth noting," "at the end of the day," "that being said," etc. High precision, low false-positive.
-- **`tell_flags`** *(soft)*. Scans a curated word-list mirroring the categories in `references/tells.md` (sync enforced by a unit test) — delve, leverage, robust, seamless… Reported as flags with context, **not** an auto-fail — because "robust test coverage" is correct and only a judge/human can tell. The count feeds the score and hands candidates to Tier 2 to adjudicate. (A static list can spot the word; it can't judge the context. Respect that boundary or you'll punish good writing.)
+- **`tell_flags`** *(soft)*. Scans a curated word-list mirroring the categories in `references/tells.md` (sync enforced by a unit test) — delve, leverage, robust, seamless… Reported as flags with context, **not** an auto-fail — because "robust test coverage" is correct and only a judge/human can tell. The count feeds the score and hands candidates to Tier 2 to adjudicate. The rate uses a 200-word floor, like `triads_ok`, so one contextual tell-word in a short note — or a short *section* under the per-section scan — is reported, never failed; only a cluster crosses the threshold. (A static list can spot the word; it can't judge the context. Respect that boundary or you'll punish good writing.)
 - **`burstiness_ok`** *(soft)*. Computes the coefficient of variation of sentence lengths (stddev ÷ mean words-per-sentence). Human prose typically lands above ~0.5; metronomic AI prose falls below ~0.4. Also flags 3+ consecutive sentences within ±2 words of each other. This is the earlier "rule of three / vary the rhythm" insight, now a number.
 - **`triads_ok`** *(soft)*. Counts "A, B, and C" / "A, B, or C" constructions, normalized per 200 words. More than ~1 per 200 words is the pattern readers feel without naming.
 - **`no_throatclear_open`** *(soft)*. Checks the first sentence doesn't open with a runway phrase ("I just wanted to," "In this response," "I hope this finds you").
@@ -51,9 +51,11 @@ every result line with the section index and heading:
 python3 tests/checks/run_checks.py --output out.md --per-section --checks tell_flags,no_high_conf_tells
 ```
 
-Exit codes match the single-output mode — any hard failure in any section exits 1,
-soft flags alone don't — with one addition: a check that passes on the whole document
-but fails inside a section (the drift signature this mode exists to catch) also exits 1.
+Exit codes match the single-output mode — the whole document is graded first, so a
+hard failure at either scope exits 1 (a quoted span can cross a section boundary, so a
+document-scope failure is not always visible section by section) and soft flags alone
+don't — with one addition: a check that passes on the whole document but fails inside
+a section (the drift signature this mode exists to catch) also exits 1.
 A document with no H2 headings is graded as one section, identical to a whole-document
 run. The same splitter backs the `per_section_tell_rise_max` metamorphic property below.
 

@@ -17,8 +17,10 @@ Three modes:
   python tests/checks/run_checks.py --output out.md --per-section --checks tell_flags
 
 Exit codes: --output mode exits 1 on any hard failure (soft flags never gate) and 2 on
-an unknown check id. --per-section keeps both rules and adds the drift signature: a
-check that passes on the whole document but fails inside at least one section also
+an unknown check id. --per-section keeps both rules — the whole document is graded
+first, and a hard failure at document scope gates even when every section passes in
+isolation (a quoted span can cross a section boundary) — and adds the drift signature:
+a check that passes on the whole document but fails inside at least one section also
 exits 1 — early clean sections must not dilute late slop. A document with no H2
 headings is graded as one section, identical to a plain --output run.
 """
@@ -105,7 +107,7 @@ def main():
     checks = [c.strip() for c in args.checks.split(",") if c.strip()]
     if args.per_section:
         try:
-            whole_results, _, _ = _grade(output, checks, prompt, source)
+            whole_results, whole_hard, _ = _grade(output, checks, prompt, source)
         except ValueError as e:
             print(f"FAILURE: {e}")
             sys.exit(2)
@@ -124,9 +126,15 @@ def main():
                 # the drift signature: clean overall, dirty in one section
                 if not r["passed"] and whole_pass.get(r["id"], False):
                     drift.append({"check": r["id"], "section": idx, "heading": heading})
+        if whole_hard:
+            # the --output rule, kept: a hard failure visible only at document scope
+            # (e.g. a quoted span crossing a section boundary) still gates
+            print("  whole-document hard failures:")
+            _print(whole_hard)
         print(json.dumps({"sections": n, "hard_failures": total_hard,
+                          "whole_doc_hard_failures": len(whole_hard),
                           "soft_flags": total_soft, "drift": drift}))
-        sys.exit(0 if (total_hard == 0 and not drift) else 1)
+        sys.exit(0 if (total_hard == 0 and not drift and not whole_hard) else 1)
     try:
         results, hard_fail, soft_fail = _grade(output, checks, prompt, source)
     except ValueError as e:

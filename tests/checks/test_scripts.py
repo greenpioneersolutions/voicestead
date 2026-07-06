@@ -208,7 +208,8 @@ def _drift_doc():
     """Six sections: a preamble, four clean parts, and a tell-dense LAST section.
     Enough clean prose (800 words measured by tm.word_count) dilutes the seven
     tell-words to 1.75/200w — under the 2.0 whole-doc threshold — while the last
-    section alone sits at 77.78/200w. The drift this mode exists to catch."""
+    section alone sits at 7.0/200w over the check's 200-word floor. The drift
+    this mode exists to catch."""
     parts = ["A handbook draft for the team."]
     for i in range(1, 5):
         parts.append("## Part %d\n\n%s" % (i, " ".join([_CLEAN_PAR] * 8)))
@@ -259,6 +260,44 @@ def test_per_section_rejects_corpus_mode():
     r = _run("tests/checks/run_checks.py", "--corpus", os.path.join(REPO, "tests", "corpus"),
              "--per-section", cwd=os.path.join(REPO, "tests", "checks"))
     assert r.returncode == 2, r.stdout + r.stderr
+
+
+def test_per_section_keeps_whole_doc_hard_failures(tmp_path):
+    # NEGATIVE-PATH CANARY for the whole-document rule: the lone inches-mark quote in
+    # section 1 mispairs with the citation's opening quote in section 2, so the tell
+    # is exposed at document scope (--output hard-fails) while each section passes in
+    # isolation. --per-section must stay a superset of --output and exit 1 too.
+    doc = tmp_path / "doc.md"
+    doc.write_text('## Desk setup\n\nThe 24" ultrawide arrived and the stand fits the '
+                   'rail.\n\n## Pricing feedback\n\nCut the line and keep the phrase '
+                   '"when it comes to pricing, we lead" out of the deck.\n')
+    checks_cwd = os.path.join(REPO, "tests", "checks")
+
+    whole = _run("tests/checks/run_checks.py", "--output", str(doc),
+                 "--checks", "no_high_conf_tells", cwd=checks_cwd)
+    assert whole.returncode == 1, whole.stdout + whole.stderr  # the premise: --output gates
+
+    per = _run("tests/checks/run_checks.py", "--output", str(doc), "--per-section",
+               "--checks", "no_high_conf_tells", cwd=checks_cwd)
+    assert per.returncode == 1, "whole-doc hard failure dropped:\n" + per.stdout + per.stderr
+    assert '"whole_doc_hard_failures": 1' in per.stdout
+    assert "whole-document hard failures:" in per.stdout
+
+
+def test_per_section_grades_heading_text_too(tmp_path):
+    # NEGATIVE-PATH CANARY for the heading-prepend rule: the only tells live in the
+    # final H2 heading itself; a build that grades section bodies alone reports the
+    # document clean and exits 0 instead of firing the drift signature.
+    doc = tmp_path / "doc.md"
+    clean = " ".join([_CLEAN_PAR] * 8)
+    doc.write_text("## Part 1\n\n%s\n\n## Part 2\n\n%s\n\n"
+                   "## Leveraging seamless synergy\n\nShip the update Friday.\n"
+                   % (clean, clean))
+    per = _run("tests/checks/run_checks.py", "--output", str(doc), "--per-section",
+               "--checks", "tell_flags", cwd=os.path.join(REPO, "tests", "checks"))
+    assert per.returncode == 1, "heading tells failed to gate:\n" + per.stdout + per.stderr
+    assert '"Leveraging seamless synergy"' in per.stdout
+    assert '"drift"' in per.stdout and '"tell_flags"' in per.stdout
 
 
 if __name__ == "__main__":
