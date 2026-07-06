@@ -16,6 +16,9 @@ The pre-launch packaging release: the skill got a real home, a real installer, a
 - **S2 onboarding cases 17–19** covering offer-once behavior, voice-profile-loaded drafts, and influence-informed drafts.
 - **Hardening cases 20–25** covering instructions-vs-material, genre exemption, never-send-hot,
   review-quotes-strength, zombie-noun thaw, and three-questions-max.
+- **Truth Gate v2.** Three new hard deterministic checks — `no_invented_quotes`, `no_invented_citations`, `no_invented_urls` — licensing quoted spans, citation patterns, and URLs against the prompt and source, the same way the numbers gate always worked. Six corpus fixtures and eval cases 26–31 cover both directions; residual limits (paraphrased fabrication, misattribution) are documented in the docstrings as judge-tier.
+- **Stylometric cold-start.** `scripts/voice_profile_draft.py` measures 2–3 writing samples into a draft voice profile on stdout — sentence-length spread, contraction rate, punctuation density, hedging, favorite openers — every number computed, nothing estimated. The onboarding interview refines the draft instead of starting cold.
+- **Anti-drift session guard.** A fence-aware section splitter, a `--per-section` mode for `run_checks.py` that catches the drift signature (a document that passes whole but fails inside a section), a `per_section_tell_rise_max` metamorphic gate (case 32), and a SKILL.md protocol for holding the voice through long jobs.
 - **CI / test automation.** A `check` job on every push (repo-structure guard, Tier-1 corpus, a **dogfood** self-test that holds the skill's own prose to its own bar, `pytest` unit tests for the checks, and a `.skill` build artifact); a `golden` dispatch job that runs the S0 with/without benchmark on the 5 real fixtures; `release.yml` (a `v*` tag → validated GitHub Release with `voicestead.skill` attached); and `pr-eval.yml` (a sticky check-summary comment on PRs).
 
 ### Changed
