@@ -163,6 +163,33 @@ def test_corpus_curly_apostrophe_canary(tmp_path):
     assert r.returncode == 1, "canary failed to fire:\n" + r.stdout + r.stderr
 
 
+# --------------------------------------------------------------------------- single output (run_checks)
+
+def test_single_output_default_checks_catch_fabrication(tmp_path):
+    # Negative-path canary for the DEFAULT --checks wiring: with no --checks flag,
+    # the truth gates must still run, so a fabricated URL and a fabricated quote
+    # must exit 1. Guards the default list itself — corpus mode never exercises it
+    # because manifests supply explicit check lists.
+    out = tmp_path / "out.txt"
+    out.write_text('Docs live at https://docs.example.com/setup if you get stuck. '
+                   'She said "we will never miss a deadline again this year."\n')
+    r = _run("tests/checks/run_checks.py", "--output", str(out),
+             "--prompt", "tell the team where the docs live",
+             cwd=os.path.join(REPO, "tests", "checks"))
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert "no_invented_urls" in r.stdout and "no_invented_quotes" in r.stdout
+
+
+def test_single_output_default_checks_clean_green(tmp_path):
+    # The positive half: clean prose under the default check list exits 0, which also
+    # proves every id in the default list resolves (a typo'd default would exit 2).
+    out = tmp_path / "out.txt"
+    out.write_text("The demo moved to Thursday. Sam found the bug and fixed it the same afternoon.\n")
+    r = _run("tests/checks/run_checks.py", "--output", str(out),
+             cwd=os.path.join(REPO, "tests", "checks"))
+    assert r.returncode == 0, r.stdout + r.stderr
+
+
 # --------------------------------------------------------------------------- dogfood
 
 def test_dogfood_real_green():

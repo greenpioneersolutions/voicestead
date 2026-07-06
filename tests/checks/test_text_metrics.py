@@ -503,6 +503,18 @@ def test_short_quote_exempt():
     assert one('Call it "the big freeze" internally.', "no_invented_quotes")["passed"]
 
 
+def test_five_word_fabricated_quote_flagged():
+    # boundary pin: a quote of exactly _QUOTE_MIN_WORDS words must fire the gate,
+    # so the floor cannot silently drift upward
+    assert not one('She said "we will never miss deadlines."', "no_invented_quotes")["passed"]
+
+
+def test_four_word_quote_exempt():
+    # boundary pin from below: one word under the floor stays scare-quote exempt,
+    # so the floor cannot silently drift downward either
+    assert one('She said "we will never miss."', "no_invented_quotes")["passed"]
+
+
 def test_trailing_period_inside_quote_licensed():
     # American-style punctuation inside the closing quote must not read as fabrication
     assert one('End on "shipping fast matters less than shipping right."',
@@ -537,6 +549,33 @@ def test_author_year_licensed_passes():
                source="see Newport (2016), Deep Work")["passed"]
 
 
+def test_author_year_year_only_not_licensed():
+    # half-licensed must still flag: a bare year in the input (here just a date)
+    # cannot license the surname — 'or' in the licensing test must never become 'and'
+    assert not one("Smith (2016) proved this.", "no_invented_citations",
+                   prompt="our 2016 revenue was flat")["passed"]
+
+
+def test_author_year_surname_only_not_licensed():
+    # the mirror half: a licensed surname cannot license a fabricated year
+    assert not one("Newport (2016) argues focus beats hours.", "no_invented_citations",
+                   prompt="newport flagged the focus problem")["passed"]
+
+
+def test_hyphenated_author_licensed_passes():
+    # a hyphenated surname supplied verbatim by the input must not read as fabrication
+    # ('keep the citations exactly as given' with Smith-Jones used to hard-fail)
+    assert one("Smith-Jones (2020) shows the same effect.", "no_invented_citations",
+               prompt="see Smith-Jones (2020) for the baseline")["passed"]
+
+
+def test_hyphenated_author_partial_match_still_flagged():
+    # negative-path canary for the hyphen handling: half a hyphenated surname in the
+    # input does not license the whole name
+    assert not one("Nguyen-Smith (2021) proved it.", "no_invented_citations",
+                   prompt="nguyen sent the 2021 draft over")["passed"]
+
+
 def test_et_al_fabrication_flagged():
     assert not one("Kim et al. (2020) reported the same effect.", "no_invented_citations")["passed"]
 
@@ -567,6 +606,13 @@ def test_doi_licensed_passes():
                prompt="cite only 10.1000/xyz123")["passed"]
 
 
+def test_doi_licensed_at_sentence_end_passes():
+    # trailing punctuation captured with the DOI (')' and '.') must be stripped before
+    # licensing — a sourced DOI inside parens at a sentence end is not a fabrication
+    assert one("The result was replicated (doi 10.1000/xyz123).", "no_invented_citations",
+               prompt="cite only 10.1000/xyz123")["passed"]
+
+
 def test_according_to_unsourced_flagged():
     assert not one("According to Gartner, most migrations slip.", "no_invented_citations")["passed"]
 
@@ -578,6 +624,31 @@ def test_according_to_named_in_prompt_passes():
 
 def test_according_to_common_noun_exempt():
     assert one("According to the plan, we ship on Friday.", "no_invented_citations")["passed"]
+
+
+def test_according_to_article_proper_noun_flagged():
+    # the '(?:the )?' branch: article-then-proper-noun is the classic borrowed-authority
+    # shape and must be extracted, not hidden behind the article
+    assert not one("According to the Gartner Group, most migrations slip.",
+                   "no_invented_citations")["passed"]
+
+
+def test_according_to_capitalized_the_not_licensed_by_stopword():
+    # 'the' appears in virtually every prompt; it must not license 'The Lancet'
+    assert not one("According to The Lancet, the drug works.", "no_invented_citations",
+                   prompt="write up the trial result")["passed"]
+
+
+def test_according_to_capitalized_article_a_not_licensed():
+    assert not one("According to A Harvard Study, focus beats hours.", "no_invented_citations",
+                   prompt="a quick note to the team")["passed"]
+
+
+def test_according_to_publication_licensed_by_content_word():
+    # the stopword filter must not over-reach: a real content word in the input
+    # still licenses the entity
+    assert one("According to The Lancet, the effect held.", "no_invented_citations",
+               prompt="the lancet paper i sent covers this")["passed"]
 
 
 def test_curly_apostrophe_name_licensed():
