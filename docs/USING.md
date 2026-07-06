@@ -87,6 +87,18 @@ Sample lines:
 2. "Short version: we can hit the date or keep the scope. Not both."
 ```
 
+### Fast start: a measured draft in seconds
+
+Working from a clone of this repo, you can walk into the setup with numbers instead of a blank page. Point the stylometer at two or three things you wrote:
+
+```bash
+python3 scripts/voice_profile_draft.py email.txt post.txt
+```
+
+It prints a draft profile built from counts — sentence rhythm, paragraph shape, contraction habit, punctuation density, hedges, repeated sentence-starts, favorite words, question rate. Every number is computed from your samples; nothing is guessed. Add `--out my-draft.md` to save it somewhere (the script refuses to write into the skill folder — profiles are personal-by-design, and where they live is your call).
+
+The script takes seconds; the interview is still the better step, because a counter can't hear tone. The draft leaves "Sounds like" and "Never says" open on purpose — those are judgment calls. Paste the draft into the setup above and say "start from this," and the interview refines measurements into a profile you've confirmed.
+
 ---
 
 ## The four modes

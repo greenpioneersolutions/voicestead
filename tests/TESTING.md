@@ -156,6 +156,17 @@ README.md              ← repo/dev readme.
 
 `tests/` and `.github/` are never loaded by Claude at runtime — they're development infrastructure that lives alongside the skill, exactly like a normal library repo keeps its `src/` and its `tests/` side by side. `python3 -m scripts.package_skill voicestead` zips only `skills/voicestead/`.
 
+## Repo tooling (`scripts/`)
+
+Standalone argparse + stdlib helpers, run from the repo root. None needs a key or the network.
+
+| Script | What it does | Exits 1 when |
+|---|---|---|
+| `scripts/package_skill.py` | Zips `skills/voicestead/` into `voicestead.skill`; personal profile files never ship | the skill dir or its SKILL.md is missing |
+| `scripts/check_links.py` | Resolves every relative markdown link | any link is broken |
+| `scripts/check_placeholders.py` | Sweeps for leftover pre-launch sentinel tokens | `--strict` finds one |
+| `scripts/voice_profile_draft.py` | Measures 2–3 writing samples into a draft voice profile on stdout; deterministic, every number computed | fewer than 2 samples, or `--out` points into `skills/` |
+
 ## Honest limits
 
 - The judge is a good proxy for a thoughtful reader, not a substitute for one. Treat its scores as evidence, not verdicts.

@@ -21,6 +21,8 @@ Read the profile back in one block before you save it, and wait for a yes. Their
 
 If they skip the setup: infer from how they write to you in the chat — their messages are a live sample — and ask for one line of something real when the stakes are high.
 
+Working from a clone of the repo, there is a measured head start: `python3 scripts/voice_profile_draft.py sample1.txt sample2.txt` prints a draft profile in seconds — sentence rhythm, contraction rate, punctuation habits, all computed from the samples, never guessed. Treat it as raw material for this interview: it counts what can be counted and leaves "Sounds like" and "Never says" to the writer.
+
 ## Where it's stored (be honest about persistence)
 
 Say what actually happens on the surface you're running on. Never imply the profile persists by magic — it lives in a file or in Project knowledge, nowhere else.
