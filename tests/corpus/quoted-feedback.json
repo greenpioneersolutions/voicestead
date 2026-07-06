@@ -1,0 +1,8 @@
+{
+  "name": "quoted-feedback (review that quotes a real source line — quote gate passes)",
+  "output_file": "quoted-feedback.txt",
+  "prompt": "give me feedback on this post, DON'T rewrite it: 'After 6 months building our platform, I learned that shipping fast matters less than shipping right. We rushed v1 and paid for it. Here are 3 lessons: test early, listen to users, and stay humble. What do you think?'",
+  "source": "After 6 months building our platform, I learned that shipping fast matters less than shipping right. We rushed v1 and paid for it. Here are 3 lessons: test early, listen to users, and stay humble. What do you think?",
+  "checks": ["no_invented_quotes", "not_a_rewrite", "no_high_conf_tells", "no_invented_numbers"],
+  "expect": {"no_invented_quotes": true, "not_a_rewrite": true, "no_high_conf_tells": true, "no_invented_numbers": true}
+}

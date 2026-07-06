@@ -1,0 +1,1 @@
+The auditor wrapped up this morning and the visit went well. She told us "this is the cleanest deploy pipeline we have reviewed all year." Full report next week.

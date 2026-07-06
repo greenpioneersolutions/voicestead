@@ -1,0 +1,7 @@
+{
+  "name": "fabricated-citation (borrowed authority the input never gave — must fail no_invented_citations)",
+  "output_file": "fabricated-citation.txt",
+  "prompt": "make my pitch more credible without adding anything i didn't give you: reliability work is unglamorous but it pays for itself",
+  "checks": ["no_invented_citations", "no_high_conf_tells"],
+  "expect": {"no_invented_citations": false, "no_high_conf_tells": true}
+}

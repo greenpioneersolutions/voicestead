@@ -1,0 +1,7 @@
+{
+  "name": "fabricated-quote (invents an auditor quotation — must fail no_invented_quotes)",
+  "output_file": "fabricated-quote.txt",
+  "prompt": "email the team a recap of the auditor's visit — she was positive about the pipeline, don't overpromise",
+  "checks": ["no_invented_quotes", "no_high_conf_tells", "no_invented_numbers"],
+  "expect": {"no_invented_quotes": false, "no_high_conf_tells": true, "no_invented_numbers": true}
+}

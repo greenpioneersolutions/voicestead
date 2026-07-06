@@ -1,0 +1,7 @@
+{
+  "name": "linked-note (uses exactly the link the prompt supplied — url gate passes)",
+  "output_file": "linked-note.txt",
+  "prompt": "quick note to eng: standup notes now live at https://notes.example.com/standup",
+  "checks": ["no_invented_urls", "no_high_conf_tells", "no_throatclear_open"],
+  "expect": {"no_invented_urls": true, "no_high_conf_tells": true, "no_throatclear_open": true}
+}

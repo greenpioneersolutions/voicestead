@@ -1,0 +1,1 @@
+The deploy runbook moved. New home: https://wiki.example.com/deploy-runbook — update your bookmarks.

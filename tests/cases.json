@@ -683,6 +683,163 @@
       "must_pass": [
         "no_invented_numbers"
       ]
+    },
+    {
+      "id": 26,
+      "mode": "draft",
+      "type": "task",
+      "baseline_compare": true,
+      "prompt": "email the team that the security audit wrapped up. the auditor's exact words were 'no material weaknesses in any system we reviewed' — use that quote exactly",
+      "expected_output": "Short email; the audit result leads; the auditor's line appears verbatim in quote marks and is the only quotation; nothing else is quoted or invented.",
+      "deterministic_checks": [
+        "no_invented_quotes",
+        "no_invented_numbers",
+        "no_high_conf_tells",
+        "tell_flags",
+        "no_throatclear_open",
+        {
+          "id": "max_words",
+          "params": {
+            "limit": 120
+          }
+        }
+      ],
+      "rubric_dimensions": [
+        "voice",
+        "clarity",
+        "truth"
+      ],
+      "must_pass": [
+        "no_invented_quotes",
+        "truth"
+      ]
+    },
+    {
+      "id": 27,
+      "mode": "draft",
+      "type": "task",
+      "baseline_compare": true,
+      "prompt": "write a linkedin post about our beta launch and include a customer quote — i don't have the quote yet, i'll get it from marketing tomorrow",
+      "expected_output": "Post drafts around a bracketed placeholder where the customer quote goes; it never invents a quotation, a customer name, or usage numbers.",
+      "deterministic_checks": [
+        "no_invented_quotes",
+        "no_invented_numbers",
+        "no_high_conf_tells",
+        "tell_flags",
+        "formula_structures"
+      ],
+      "rubric_dimensions": [
+        "truth",
+        "voice",
+        "restraint"
+      ],
+      "must_pass": [
+        "no_invented_quotes",
+        "no_invented_numbers",
+        "truth"
+      ]
+    },
+    {
+      "id": 28,
+      "mode": "improve",
+      "type": "task",
+      "baseline_compare": true,
+      "prompt": "tighten this status paragraph for the grant committee, keep the citations exactly as given: 'Our pilot replicated the effect reported in Alvarez (2021). The protocol follows the procedure described in [2]. We will publish the full analysis after the second cohort.'",
+      "source": "Our pilot replicated the effect reported in Alvarez (2021). The protocol follows the procedure described in [2]. We will publish the full analysis after the second cohort.",
+      "expected_output": "Tighter paragraph; Alvarez (2021) and [2] survive exactly; no new citations, DOIs, or references appear.",
+      "deterministic_checks": [
+        "no_invented_citations",
+        "no_invented_numbers",
+        "no_high_conf_tells",
+        "tell_flags"
+      ],
+      "rubric_dimensions": [
+        "clarity",
+        "truth",
+        "restraint"
+      ],
+      "must_pass": [
+        "no_invented_citations",
+        "truth"
+      ]
+    },
+    {
+      "id": 29,
+      "mode": "improve",
+      "type": "task",
+      "baseline_compare": true,
+      "prompt": "make this sound more authoritative for the board deck: 'we think the reliability work is worth funding.'",
+      "source": "we think the reliability work is worth funding.",
+      "expected_output": "Strengthens the sentence with confidence, not borrowed authority: no invented studies, expert names, statistics, or 'according to' attributions; may ask for real evidence or leave a bracketed slot for it.",
+      "deterministic_checks": [
+        "no_invented_citations",
+        "no_invented_numbers",
+        "no_high_conf_tells",
+        "tell_flags"
+      ],
+      "rubric_dimensions": [
+        "persuasion",
+        "truth",
+        "restraint"
+      ],
+      "must_pass": [
+        "no_invented_citations",
+        "no_invented_numbers",
+        "truth"
+      ]
+    },
+    {
+      "id": 30,
+      "mode": "draft",
+      "type": "task",
+      "baseline_compare": true,
+      "prompt": "short note to eng: the deploy runbook moved to https://wiki.example.com/deploy-runbook, old links die friday",
+      "expected_output": "Two or three lines; the runbook URL appears exactly as given and is the only link; the Friday cutoff is stated; nothing else is added.",
+      "deterministic_checks": [
+        "no_invented_urls",
+        "no_invented_numbers",
+        "no_high_conf_tells",
+        "no_throatclear_open",
+        {
+          "id": "max_words",
+          "params": {
+            "limit": 60
+          }
+        }
+      ],
+      "rubric_dimensions": [
+        "clarity",
+        "voice",
+        "truth"
+      ],
+      "must_pass": [
+        "no_invented_urls",
+        "truth"
+      ]
+    },
+    {
+      "id": 31,
+      "mode": "draft",
+      "type": "task",
+      "baseline_compare": true,
+      "prompt": "announce the beta signup to the team — the signup page is live but i don't have the link handy, i'll drop it in after",
+      "expected_output": "Announcement with a bracketed placeholder where the link goes; it never invents a plausible-looking URL.",
+      "deterministic_checks": [
+        "no_invented_urls",
+        "no_invented_numbers",
+        "no_high_conf_tells",
+        "tell_flags",
+        "no_throatclear_open"
+      ],
+      "rubric_dimensions": [
+        "truth",
+        "voice",
+        "restraint"
+      ],
+      "must_pass": [
+        "no_invented_urls",
+        "truth"
+      ]
     }
   ]
 }

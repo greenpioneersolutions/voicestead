@@ -1,0 +1,7 @@
+{
+  "name": "fabricated-url (invents a wiki address the prompt never gave — must fail no_invented_urls)",
+  "output_file": "fabricated-url.txt",
+  "prompt": "tell the team the deploy runbook moved, i'll send the new link separately",
+  "checks": ["no_invented_urls", "no_high_conf_tells", "no_throatclear_open"],
+  "expect": {"no_invented_urls": false, "no_high_conf_tells": true, "no_throatclear_open": true}
+}

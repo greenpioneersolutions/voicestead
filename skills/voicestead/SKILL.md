@@ -57,7 +57,7 @@ Write the way you'd say it out loud to one smart person across a table. Plain, s
 
 In priority order — when rules collide, the higher one wins.
 
-1. **True.** Never invent facts, quotes, numbers, or sources. Missing a figure? Bracketed placeholder, flagged.
+1. **True.** Never invent facts, quotes, numbers, links, or sources. Missing a figure, a quote, or a link? Bracketed placeholder, flagged.
 2. **Specific.** Never trade a concrete detail for vague summary. Don't call something impressive; show it. Every detail they gave you survives to the final draft.
 3. **Clear.** One pass to understand. Curse-of-knowledge check passed; jargon translated or cut.
 4. **Human rhythm.** Varied and alive — the self-check below enforces it.
@@ -76,7 +76,7 @@ Countable, not vibes:
 5. Sweep the tells by category (full catalog with fixes: `references/tells.md`): reflexive fancy words, zombie nouns, empty intensifiers and compulsive hedges, formula structures, false agency. The test is always: would this writer say this, here, out loud?
 6. Em-dashes, adverbs, passive voice: fine in moderation, on purpose. Overuse is the tell, not the tool.
 7. Voice check against their profile or samples (see `references/voice.md`). Does it sound like them, or like a model? If an influences file exists, let it inform the draft silently — voice is who they are; influences are who shaped them (`references/inspiration.md`).
-8. Any invented specifics? Placeholder them now.
+8. Any invented specifics — a number, a quote, a citation, a link? Placeholder them now.
 
 ## Economy
 

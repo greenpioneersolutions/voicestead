@@ -33,7 +33,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--output"); ap.add_argument("--prompt", default="")
     ap.add_argument("--source", default="")
-    ap.add_argument("--checks", default="no_invented_numbers,no_high_conf_tells,tell_flags,formula_structures,burstiness_ok,triads_ok,no_throatclear_open,zombie_nouns,false_agency")
+    ap.add_argument("--checks", default="no_invented_numbers,no_invented_quotes,no_invented_citations,no_invented_urls,no_high_conf_tells,tell_flags,formula_structures,burstiness_ok,triads_ok,no_throatclear_open,zombie_nouns,false_agency")
     ap.add_argument("--corpus")
     args = ap.parse_args()
 

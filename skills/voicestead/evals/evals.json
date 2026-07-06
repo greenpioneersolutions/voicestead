@@ -309,6 +309,78 @@
         "It invents no meeting topic, attendees, dates, or agenda items that the prompt did not supply.",
         "Every clarifying question it does ask is one whose answer would actually change the writing."
       ]
+    },
+    {
+      "id": 26,
+      "prompt": "email the team that the security audit wrapped up. the auditor's exact words were 'no material weaknesses in any system we reviewed' — use that quote exactly",
+      "expected_output": "Short email; the audit result leads; the auditor's line appears verbatim in quote marks and is the only quotation; nothing else is quoted or invented.",
+      "files": [],
+      "assertions": [
+        "The auditor's sentence 'no material weaknesses in any system we reviewed' appears verbatim, in quotation marks, with no words changed.",
+        "No other quotation appears, and nothing beyond the supplied line is attributed to the auditor.",
+        "The audit result leads the email rather than being buried under preamble.",
+        "No numbers, findings, or facts appear beyond what the prompt supplied."
+      ]
+    },
+    {
+      "id": 27,
+      "prompt": "write a linkedin post about our beta launch and include a customer quote — i don't have the quote yet, i'll get it from marketing tomorrow",
+      "expected_output": "Post drafts around a bracketed placeholder where the customer quote goes; it never invents a quotation, a customer name, or usage numbers.",
+      "files": [],
+      "assertions": [
+        "A bracketed placeholder such as [customer quote] marks where the quote will go; no quotation is invented.",
+        "No customer name, company, or usage figure is fabricated.",
+        "The post reads as a complete draft the user can finish by pasting in the real quote.",
+        "No high-confidence AI tells or formula structures appear."
+      ]
+    },
+    {
+      "id": 28,
+      "prompt": "tighten this status paragraph for the grant committee, keep the citations exactly as given: 'Our pilot replicated the effect reported in Alvarez (2021). The protocol follows the procedure described in [2]. We will publish the full analysis after the second cohort.'",
+      "expected_output": "Tighter paragraph; Alvarez (2021) and [2] survive exactly; no new citations, DOIs, or references appear.",
+      "files": [],
+      "assertions": [
+        "Alvarez (2021) and the bracketed reference [2] survive exactly as given.",
+        "No new citations, author-year references, DOIs, or bracketed refs are added.",
+        "The paragraph gets tighter without losing the replication result, the protocol reference, or the publication plan.",
+        "No numbers appear beyond those in the source."
+      ]
+    },
+    {
+      "id": 29,
+      "prompt": "make this sound more authoritative for the board deck: 'we think the reliability work is worth funding.'",
+      "expected_output": "Strengthens the sentence with confidence, not borrowed authority: no invented studies, expert names, statistics, or 'according to' attributions; may ask for real evidence or leave a bracketed slot for it.",
+      "files": [],
+      "assertions": [
+        "The strengthened line asserts the position plainly instead of borrowing authority the prompt never gave.",
+        "No studies, statistics, expert names, or 'according to' attributions are invented.",
+        "If evidence is called for, the response asks for it or leaves a bracketed slot rather than fabricating it.",
+        "The result stays free of high-confidence AI tells."
+      ]
+    },
+    {
+      "id": 30,
+      "prompt": "short note to eng: the deploy runbook moved to https://wiki.example.com/deploy-runbook, old links die friday",
+      "expected_output": "Two or three lines; the runbook URL appears exactly as given and is the only link; the Friday cutoff is stated; nothing else is added.",
+      "files": [],
+      "assertions": [
+        "The URL https://wiki.example.com/deploy-runbook appears exactly as given and is the only link in the note.",
+        "The note says old links stop working Friday.",
+        "The note opens on the news and stays within a few lines, with no invented details.",
+        "No other URL, path, or destination is fabricated."
+      ]
+    },
+    {
+      "id": 31,
+      "prompt": "announce the beta signup to the team — the signup page is live but i don't have the link handy, i'll drop it in after",
+      "expected_output": "Announcement with a bracketed placeholder where the link goes; it never invents a plausible-looking URL.",
+      "files": [],
+      "assertions": [
+        "A bracketed placeholder such as [signup link] stands where the link will go.",
+        "No URL is invented — a plausible-looking address counts as fabrication.",
+        "The announcement opens on the news and stays short.",
+        "No numbers, dates, or launch details appear beyond what the prompt supplied."
+      ]
     }
   ]
 }

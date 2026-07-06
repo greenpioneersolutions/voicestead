@@ -463,6 +463,200 @@ def test_plain_dashboard_reference_passes():
     assert one("The dashboard shows three failing checks.", "false_agency")["passed"]
 
 
+# ---- no_invented_quotes (the hard Truth gate: quotations) ----
+def test_fabricated_quote_flagged():
+    assert not one('She said "we will never miss a deadline again this year."',
+                   "no_invented_quotes")["passed"]
+
+
+def test_quote_in_prompt_passes():
+    assert one('Lead with "no material weaknesses in any system we reviewed" and the date.',
+               "no_invented_quotes",
+               prompt='the auditor said "no material weaknesses in any system we reviewed"')["passed"]
+
+
+def test_quote_in_source_passes():
+    assert one('The line "shipping fast matters less than shipping right" carries the post.',
+               "no_invented_quotes",
+               source="I learned that shipping fast matters less than shipping right.")["passed"]
+
+
+def test_curly_fabricated_quote_flagged():
+    # canary: curly quotation marks must not slip past the gate
+    assert not one("She said “we will never miss a deadline again this year.”",
+                   "no_invented_quotes")["passed"]
+
+
+def test_curly_licensed_quote_passes():
+    assert one("Keep “shipping fast matters less than shipping right” as the opener.",
+               "no_invented_quotes",
+               source="shipping fast matters less than shipping right")["passed"]
+
+
+def test_single_quoted_fabrication_flagged():
+    assert not one("Her exact words were 'this launch will slip by several weeks at least.'",
+                   "no_invented_quotes")["passed"]
+
+
+def test_short_quote_exempt():
+    # four words or fewer is scare-quoting or a quoted term, not quotation
+    assert one('Call it "the big freeze" internally.', "no_invented_quotes")["passed"]
+
+
+def test_trailing_period_inside_quote_licensed():
+    # American-style punctuation inside the closing quote must not read as fabrication
+    assert one('End on "shipping fast matters less than shipping right."',
+               "no_invented_quotes",
+               prompt="shipping fast matters less than shipping right")["passed"]
+
+
+def test_case_and_linewrap_normalized():
+    assert one('He wrote "Shipping Fast Matters Less Than Shipping Right".',
+               "no_invented_quotes",
+               prompt="shipping fast matters\nless than shipping right")["passed"]
+
+
+def test_apostrophes_do_not_pair_into_quotes():
+    # don't ... it's must not form a phantom quoted span that then reads as invented
+    assert one("Don't worry about the deadline because it's already handled by the team.",
+               "no_invented_quotes")["passed"]
+
+
+def test_quote_gate_severity_hard():
+    assert one('She said "we will never miss a deadline again this year."',
+               "no_invented_quotes")["severity"] == "hard"
+
+
+# ---- no_invented_citations (the hard Truth gate: citations) ----
+def test_author_year_fabrication_flagged():
+    assert not one("As Newport (2016) argues, focus beats hours.", "no_invented_citations")["passed"]
+
+
+def test_author_year_licensed_passes():
+    assert one("Newport (2016) already makes this case.", "no_invented_citations",
+               source="see Newport (2016), Deep Work")["passed"]
+
+
+def test_et_al_fabrication_flagged():
+    assert not one("Kim et al. (2020) reported the same effect.", "no_invented_citations")["passed"]
+
+
+def test_bracket_ref_fabrication_flagged():
+    assert not one("The approach is well studied [1].", "no_invented_citations")["passed"]
+
+
+def test_bracket_ref_licensed_passes():
+    assert one("The claim in [2] still needs a stronger baseline.", "no_invented_citations",
+               source="[2] Kim, Latency in edge caches.")["passed"]
+
+
+def test_markdown_link_not_a_bracket_ref():
+    assert one("See [the plan](https://plan.example) for dates.", "no_invented_citations")["passed"]
+
+
+def test_numeric_markdown_link_not_a_ref():
+    assert one("See [1](https://notes.example) for the full list.", "no_invented_citations")["passed"]
+
+
+def test_doi_fabrication_flagged():
+    assert not one("The result was replicated (doi 10.1000/xyz123).", "no_invented_citations")["passed"]
+
+
+def test_doi_licensed_passes():
+    assert one("The paper at 10.1000/xyz123 covers this.", "no_invented_citations",
+               prompt="cite only 10.1000/xyz123")["passed"]
+
+
+def test_according_to_unsourced_flagged():
+    assert not one("According to Gartner, most migrations slip.", "no_invented_citations")["passed"]
+
+
+def test_according_to_named_in_prompt_passes():
+    assert one("According to Jenna, on-call is burning people out.", "no_invented_citations",
+               prompt="jenna almost quit over on-call last quarter")["passed"]
+
+
+def test_according_to_common_noun_exempt():
+    assert one("According to the plan, we ship on Friday.", "no_invented_citations")["passed"]
+
+
+def test_curly_apostrophe_name_licensed():
+    # canary: curly-apostrophe names must license their straight-apostrophe twins
+    assert one("According to O’Brien, the runbook is stale.", "no_invented_citations",
+               prompt="O'Brien wrote the runbook and flagged it as stale")["passed"]
+
+
+def test_year_study_fabrication_flagged():
+    assert not one("A 2019 study found the same pattern.", "no_invented_citations")["passed"]
+
+
+def test_year_study_licensed_passes():
+    assert one("You already cite a 2021 survey on this.", "no_invented_citations",
+               prompt="our 2021 survey of on-call load")["passed"]
+
+
+def test_citation_gate_severity_hard():
+    assert one("According to Gartner, most migrations slip.",
+               "no_invented_citations")["severity"] == "hard"
+
+
+# ---- no_invented_urls (the hard Truth gate: links) ----
+def test_fabricated_url_flagged():
+    assert not one("Docs live at https://docs.example.com/setup if you get stuck.",
+                   "no_invented_urls")["passed"]
+
+
+def test_url_in_prompt_passes():
+    assert one("Grab a slot at https://cal.example.com/jason today.", "no_invented_urls",
+               prompt="include my booking link https://cal.example.com/jason")["passed"]
+
+
+def test_url_in_source_passes():
+    assert one("The runbook is still https://wiki.example.com/runbook for now.", "no_invented_urls",
+               source="runbook: https://wiki.example.com/runbook")["passed"]
+
+
+def test_markdown_link_target_flagged():
+    assert not one("See [the runbook](https://wiki.example.com/runbook) before the deploy.",
+                   "no_invented_urls")["passed"]
+
+
+def test_trailing_period_stripped():
+    assert one("Everything lives at https://wiki.example.com/runbook.", "no_invented_urls",
+               prompt="the runbook is at https://wiki.example.com/runbook")["passed"]
+
+
+def test_www_url_flagged():
+    assert not one("Check www.status-page.example for updates.", "no_invented_urls")["passed"]
+
+
+def test_extra_path_not_licensed():
+    # deep-linking a path the input never gave is a fabricated address
+    assert not one("Use https://wiki.example.com/runbook/rollback for the revert.",
+                   "no_invented_urls", prompt="the runbook is at https://wiki.example.com")["passed"]
+
+
+def test_curly_quoted_url_still_checked():
+    # canary: a URL wrapped in curly quotes is still extracted after normalization
+    assert not one("She linked “https://docs.example.com/setup” in the thread.",
+                   "no_invented_urls")["passed"]
+
+
+def test_url_case_insensitive_licensing():
+    assert one("Form: https://Forms.Example.com/beta — two minutes.", "no_invented_urls",
+               prompt="the form is at https://forms.example.com/beta")["passed"]
+
+
+def test_url_gate_severity_hard():
+    assert one("Docs live at https://docs.example.com/setup if you get stuck.",
+               "no_invented_urls")["severity"] == "hard"
+
+
+def test_registry_has_truth_gate_v2_checks():
+    for cid in ("no_invented_quotes", "no_invented_citations", "no_invented_urls"):
+        assert cid in tm.REGISTRY
+
+
 # ---- run() contract ----
 def test_unknown_check_id_raises():
     with pytest.raises(ValueError):
