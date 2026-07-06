@@ -11,7 +11,7 @@ Every subprocess runs with a PYTHONPATH shim in which `import anthropic` raises,
 accidental anthropic import in mock mode fails the test - that is the contract.
 
 Failure injection uses the mock knobs documented in run_skill.py / judge/judge.py
-(VOICESTEAD_MOCK_REVIEW_REWRITE, VOICESTEAD_MOCK_BLOAT, VOICESTEAD_MOCK_PAIR,
+(VOICESTEAD_MOCK_REVIEW_REWRITE, VOICESTEAD_MOCK_BLOAT, VOICESTEAD_MOCK_DRIFT, VOICESTEAD_MOCK_PAIR,
 VOICESTEAD_MOCK_MALFORMED, VOICESTEAD_MOCK_LOW_SCORES).
 """
 import importlib
@@ -282,3 +282,103 @@ def test_run_skill_rejects_truncated_and_empty_outputs(monkeypatch):
     monkeypatch.setattr(rs, "_get_client", lambda: _FakeClient(_FakeMsg(text="   "), {}))
     with pytest.raises(RuntimeError, match="empty"):
         rs.run("hi", with_skill=False)
+
+
+# ---------------------------------------------------------------- per-section drift property (tier1 unit)
+
+
+def _import_run_eval():
+    tests_dir = os.path.join(REPO, "tests")
+    if tests_dir not in sys.path:
+        sys.path.insert(0, tests_dir)
+    return importlib.import_module("run_eval")
+
+
+def test_per_section_tell_rise_property_unit():
+    run_eval = _import_run_eval()
+    case = {"deterministic_checks": [],
+            "metamorphic": {"property": "per_section_tell_rise_max", "value": 1.0}}
+    clean = "## A\n\nPlain words here.\n\n## B\n\nStill plain words."
+    rec = run_eval.tier1(clean, case, prompt="x")
+    assert rec["metamorphic"]["passed"] is True
+    assert rec["hard_fail"] == []
+    drifty = ("## A\n\nPlain words here again and again.\n\n"
+              "## B\n\nWe leverage robust seamless synergy to streamline delivery.")
+    rec = run_eval.tier1(drifty, case, prompt="x")
+    assert rec["metamorphic"]["passed"] is False
+    assert "per_section_tell_rise_max" in rec["hard_fail"]
+
+
+def test_per_section_tell_rise_grades_headings_too():
+    # NEGATIVE-PATH CANARY for the heading-prepend rule: the only tells live in the
+    # later section's H2 heading; a build that grades bodies alone waves it through.
+    run_eval = _import_run_eval()
+    case = {"deterministic_checks": [],
+            "metamorphic": {"property": "per_section_tell_rise_max", "value": 1.0}}
+    heading_drift = ("## Plan\n\nWe ship on Friday and tell the team.\n\n"
+                     "## Leveraging seamless synergy\n\nShort note here.")
+    rec = run_eval.tier1(heading_drift, case, prompt="x")
+    assert rec["metamorphic"]["passed"] is False
+    assert "per_section_tell_rise_max" in rec["hard_fail"]
+
+
+def test_per_section_tell_rise_tolerates_one_contextual_tell():
+    # the false-positive guard: one literal-sense tell-word in a short later section
+    # is the judge's call, not a release-gate failure — under the 200-word floor a
+    # single tell rates 1.0/200w, which never exceeds a rise bound of 1.0
+    run_eval = _import_run_eval()
+    case = {"deterministic_checks": [],
+            "metamorphic": {"property": "per_section_tell_rise_max", "value": 1.0}}
+    family = ("## Week one\n\nWe unpacked the boxes and met the neighbors.\n\n"
+              "## Week two\n\nWe signed the papers to become foster parents.")
+    rec = run_eval.tier1(family, case, prompt="x")
+    assert rec["metamorphic"]["passed"] is True
+    assert rec["hard_fail"] == []
+
+
+_HANDBOOK_PROMPT = ("turn these outline notes into one doc with '## ' markdown sections "
+                    "for the team handbook: how we onboard, how we run standups, how we "
+                    "ship, how we handle incidents, how we run retros. keep my plain "
+                    "voice all the way through")
+
+
+def test_mock_handbook_output_is_multi_section(monkeypatch):
+    rs = _import_run_skill(monkeypatch)
+    out = rs.run(_HANDBOOK_PROMPT, with_skill=True)
+    assert out.count("\n## ") >= 4  # a real multi-section document, not a one-liner
+    monkeypatch.setenv("VOICESTEAD_MOCK_DRIFT", "1")
+    drifted = rs.run(_HANDBOOK_PROMPT, with_skill=True)
+    assert drifted.startswith(out)                    # same clean document...
+    assert "leverage" in drifted.split("\n## ")[-1]   # ...slop appended to the LAST section
+
+
+def _drift_case_id():
+    """Anti-drift merges last; its case id gets renumbered at rebase if another track
+    claimed 26 first. Look the case up by its property so no test hardcodes the id."""
+    with open(CASES) as f:
+        for c in json.load(f)["evals"]:
+            if (c.get("metamorphic") or {}).get("property") == "per_section_tell_rise_max":
+                return str(c["id"])
+    raise AssertionError("no case declares per_section_tell_rise_max")
+
+
+def test_drift_case_green_in_mock(tmp_path):
+    out = tmp_path / "res"
+    p = _run_eval(out, _env(tmp_path), ids=_drift_case_id())
+    assert p.returncode == 0, p.stdout + p.stderr
+    rec = list(_recs(_bench(out)).values())[0]
+    meta = rec["with_skill_tier1"][0]["metamorphic"]
+    assert meta["property"] == "per_section_tell_rise_max" and meta["passed"] is True
+    assert rec["hard_fails"] == []
+    assert rec["pairwise"] is None  # baseline_compare is false: no fabricated comparison
+
+
+def test_drift_knob_gates_the_drift_case(tmp_path):
+    # NEGATIVE-PATH CANARY: a sloppy final section must fail the release gate.
+    out = tmp_path / "res"
+    p = _run_eval(out, _env(tmp_path, VOICESTEAD_MOCK_DRIFT="1"), ids=_drift_case_id())
+    assert p.returncode != 0
+    rec = list(_recs(_bench(out)).values())[0]
+    assert "per_section_tell_rise_max" in rec["hard_fails"]
+    assert rec["with_skill_tier1"][0]["metamorphic"]["passed"] is False
+    assert "release gate: FAIL" in p.stdout

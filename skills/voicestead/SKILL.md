@@ -78,6 +78,16 @@ Countable, not vibes:
 7. Voice check against their profile or samples (see `references/voice.md`). Does it sound like them, or like a model? If an influences file exists, let it inform the draft silently — voice is who they are; influences are who shaped them (`references/inspiration.md`).
 8. Any invented specifics — a number, a quote, a citation, a link? Placeholder them now.
 
+## Long jobs: hold the voice
+
+Voice drifts on long work. Somewhere past the first few sections the register creeps formal and the tells you swept early start coming back — the piece opens sounding like the writer and closes sounding like a model. The guard is cheap:
+
+- **Re-read the loaded voice profile** at every mode switch, and again about every three sections on a long piece. Don't trust your memory of it; reload it.
+- **Sweep the tells per section** as each one is finished, not once over the whole document at the end. A whole-document pass averages the slop away; a per-section pass catches the one section that turned.
+- **Fix the drifted section and move on.** Formal creep or a tell pileup in section four means section four gets reworked — never the whole piece. The earlier sections already passed; regenerating them throws away work that was right and risks new drift.
+
+The restraint rule holds here too: a section that still reads clean gets no edits.
+
 ## Economy
 
 This skill should make responses cheaper, not heavier. The architecture already does most of it — only this file loads on trigger; references load per job. Protect that:

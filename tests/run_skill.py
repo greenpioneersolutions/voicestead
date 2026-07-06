@@ -21,6 +21,9 @@ Mock knobs (test-only, require VOICESTEAD_MOCK=1):
                                     (deliberately violates not_a_rewrite, for gate tests)
   VOICESTEAD_MOCK_BLOAT=1           improve-mode prompts return a padded output
                                     (deliberately violates length_delta_max)
+  VOICESTEAD_MOCK_DRIFT=1           handbook prompts get a tell-dense final section
+                                    (deliberately violates per_section_tell_rise_max,
+                                    for gate tests)
 """
 import argparse, hashlib, os, re, sys
 
@@ -76,6 +79,18 @@ def _mock_output(prompt, with_skill):
     low = prompt.lower()
     m = re.search(r":\s*'(.+)'", prompt, re.S)  # the quoted material after "edit this:" etc.
     quoted = m.group(1).strip() if m else ""
+    if "handbook" in low and "section" in low:
+        # the anti-drift metamorphic case: a long multi-section document. Clean voice
+        # in every section; VOICESTEAD_MOCK_DRIFT=1 turns the LAST section sloppy,
+        # which must trip the per_section_tell_rise_max gate.
+        section = ("Keep this part short. Ask the person who ran it last time before "
+                   "you change anything, and write down what surprised you.")
+        parts = ["## %s\n\n%s" % (name, section)
+                 for name in ("Onboarding", "Standups", "Shipping", "Incidents", "Retros")]
+        if os.environ.get("VOICESTEAD_MOCK_DRIFT", "") not in ("", "0"):
+            parts[-1] += ("\n\nWe will leverage robust, seamless tooling to streamline "
+                          "and elevate every deliverable going forward.")
+        return "A short handbook for the team.\n\n" + "\n\n".join(parts)
     if re.search(r"\bfeedback\b|\breview\b|don'?t rewrite", low):
         if os.environ.get("VOICESTEAD_MOCK_REVIEW_REWRITE", "") not in ("", "0") and quoted:
             return quoted  # deliberate Review-mode violation, for must_pass gate tests

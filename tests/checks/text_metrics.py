@@ -16,7 +16,7 @@ never report green.
 """
 import re
 import statistics
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 # ---- unicode punctuation -> ascii (dashes deliberately untouched) ----
 _PUNCT_MAP = {
@@ -165,6 +165,53 @@ def split_sentences(text: str) -> List[str]:
             else:
                 out.append(s)
     return [s.strip() for s in out if s.strip()]
+
+
+_H2_LINE = re.compile(r"^## +(\S.*?)\s*$")
+# A fence line per CommonMark: a run of 3+ backticks or tildes indented at most
+# three spaces (four or more is an indented code block, not a fence). group(1) is
+# the run; group(2) is the rest of the line — an info string is legal on an opener
+# but a closer must be bare.
+_FENCE_LINE = re.compile(r"^ {0,3}(`{3,}|~{3,})(.*)$")
+
+
+def split_sections(text: str) -> List[Tuple[str, str]]:
+    """Split a markdown document on H2 headings ('## ' at line start) into
+    (heading, body) pairs, in document order. Fence-aware where split_sentences
+    never needed to be: a '## ' line inside a ``` or ~~~ fenced block is content,
+    not a boundary. Fences pair the CommonMark way: a fence closes only on a bare
+    run of the SAME character at least as LONG as its opener, so ~~~ lines inside
+    a ``` block, or a ``` example inside a ```` block, stay content; an indented
+    (4+ spaces) run of backticks is code-block content and never opens a fence.
+    Text before the first H2 becomes a ("", preamble) section; a document with no
+    H2 headings comes back as one ("", text) section, so per-section callers grade
+    it exactly like the whole document. H3+ headings and '##nospace' lines never
+    split."""
+    sections: List[Tuple[str, str]] = []
+    heading, buf = "", []
+    fence = None  # (fence char, opening run length) while inside a fence, else None
+    for line in text.splitlines():
+        f = _FENCE_LINE.match(line)
+        if f:
+            run, rest = f.group(1), f.group(2)
+            if fence is None:
+                fence = (run[0], len(run))
+            elif run[0] == fence[0] and len(run) >= fence[1] and not rest.strip():
+                fence = None
+            buf.append(line)
+            continue
+        m = None if fence else _H2_LINE.match(line)
+        if m:
+            body = "\n".join(buf).strip()
+            if heading or body:
+                sections.append((heading, body))
+            heading, buf = m.group(1), []
+        else:
+            buf.append(line)
+    body = "\n".join(buf).strip()
+    if heading or body or not sections:
+        sections.append((heading, body))
+    return sections
 
 
 def _words(s: str) -> List[str]:
@@ -418,7 +465,11 @@ def check_no_high_conf_tells(output: str, **kw) -> Dict:
 
 
 def check_tell_flags(output: str, threshold_per_200: float = 2.0, **kw) -> Dict:
-    """SOFT: count category tell-words, inflections included; the judge adjudicates context."""
+    """SOFT: count category tell-words, inflections included; the judge adjudicates context.
+    The rate uses a 200-word floor — the same protection triads_ok and zombie_nouns give
+    short texts — because per-section grading feeds this check individual sections: one
+    contextual tell-word in a short note ('we became foster parents') stays the judge's
+    call, while a cluster still crosses the threshold."""
     low = _normalize(output).lower()
     found = {}
     for w in TELL_WORDS:
@@ -426,8 +477,7 @@ def check_tell_flags(output: str, threshold_per_200: float = 2.0, **kw) -> Dict:
         if c:
             found[w] = c
     total = sum(found.values())
-    wc = max(word_count(output), 1)
-    rate = total / wc * 200
+    rate = total / max(word_count(output), 200) * 200
     passed = rate <= threshold_per_200
     return {"id": "tell_flags", "severity": "soft", "passed": passed, "metric": round(rate, 2),
             "detail": (f"{total} candidate tell-word(s) ({rate:.1f}/200w): {found}. Judge adjudicates context."

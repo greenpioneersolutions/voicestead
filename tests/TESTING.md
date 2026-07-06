@@ -30,7 +30,7 @@ What's mechanically verifiable, and how:
 - **`no_invented_citations`** *(hard — the Truth rule, for citations)*. Citation-shaped claims — `Author (Year)`, bracketed refs like `[1]`, DOIs, `according to <Name>`, `a <year> study` — must be licensed by the prompt or source. The shape families are narrow on purpose; shapeless authority ("studies show") is judge territory.
 - **`no_invented_urls`** *(hard — the Truth rule, for links)*. Every URL in the output must appear in the prompt or source. String-level only; nothing is ever fetched. A real link the user never supplied still fails: licensing comes from the input, not the model's memory.
 - **`no_high_conf_tells`** *(hard)*. Scans for the handful of phrases that are almost never justified: "in today's rapidly evolving," "it's worth noting," "at the end of the day," "that being said," etc. High precision, low false-positive.
-- **`tell_flags`** *(soft)*. Scans a curated word-list mirroring the categories in `references/tells.md` (sync enforced by a unit test) — delve, leverage, robust, seamless… Reported as flags with context, **not** an auto-fail — because "robust test coverage" is correct and only a judge/human can tell. The count feeds the score and hands candidates to Tier 2 to adjudicate. (A static list can spot the word; it can't judge the context. Respect that boundary or you'll punish good writing.)
+- **`tell_flags`** *(soft)*. Scans a curated word-list mirroring the categories in `references/tells.md` (sync enforced by a unit test) — delve, leverage, robust, seamless… Reported as flags with context, **not** an auto-fail — because "robust test coverage" is correct and only a judge/human can tell. The count feeds the score and hands candidates to Tier 2 to adjudicate. The rate uses a 200-word floor, like `triads_ok`, so one contextual tell-word in a short note — or a short *section* under the per-section scan — is reported, never failed; only a cluster crosses the threshold. (A static list can spot the word; it can't judge the context. Respect that boundary or you'll punish good writing.)
 - **`burstiness_ok`** *(soft)*. Computes the coefficient of variation of sentence lengths (stddev ÷ mean words-per-sentence). Human prose typically lands above ~0.5; metronomic AI prose falls below ~0.4. Also flags 3+ consecutive sentences within ±2 words of each other. This is the earlier "rule of three / vary the rhythm" insight, now a number.
 - **`triads_ok`** *(soft)*. Counts "A, B, and C" / "A, B, or C" constructions, normalized per 200 words. More than ~1 per 200 words is the pattern readers feel without naming.
 - **`no_throatclear_open`** *(soft)*. Checks the first sentence doesn't open with a runway phrase ("I just wanted to," "In this response," "I hope this finds you").
@@ -42,6 +42,25 @@ Run them:
 ```bash
 python3 tests/checks/run_checks.py --output path/to/output.txt --prompt path/to/prompt.txt --checks no_invented_numbers,burstiness_ok,triads_ok
 ```
+
+**Per-section drift scan (`--per-section`).** Long outputs drift: a document can pass
+every frequency threshold overall while its last section is slop, because early clean
+sections dilute the average. `--per-section` closes that hole. It splits the output on
+markdown H2 (`## `) boundaries — fence-aware, so a `## ` line inside a code block is
+content, not a boundary — and runs the configured checks against each section, tagging
+every result line with the section index and heading:
+
+```bash
+python3 tests/checks/run_checks.py --output out.md --per-section --checks tell_flags,no_high_conf_tells
+```
+
+Exit codes match the single-output mode — the whole document is graded first, so a
+hard failure at either scope exits 1 (a quoted span can cross a section boundary, so a
+document-scope failure is not always visible section by section) and soft flags alone
+don't — with one addition: a check that passes on the whole document but fails inside
+a section (the drift signature this mode exists to catch) also exits 1.
+A document with no H2 headings is graded as one section, identical to a whole-document
+run. The same splitter backs the `per_section_tell_rise_max` metamorphic property below.
 
 ---
 
@@ -105,6 +124,12 @@ A few properties should hold across transformations, even without a fixed expect
 
 - **Restraint** — feeding an already-clean text through Improve mode must not lengthen it beyond the declared bound. (Guards the "if it's already good, stop" rule.) *Enforced:* cases with `type: metamorphic` declare a `metamorphic` block, and the orchestrator computes `length_delta_max` (output vs source) or `output_to_input_ratio_max` (output vs prompt) as a hard gate — a violation lands in `hard_fails`.
 - **Mode integrity** — Review mode output must not be a rewrite. *Enforced:* the `not_a_rewrite` check, promoted to a hard gate through `must_pass`.
+- **Session drift** — in a long multi-section output, per-section tell density must not
+  rise as the document goes on; clean early sections and a sloppy late one is the
+  failure. *Enforced:* the `per_section_tell_rise_max` property splits the output on H2
+  boundaries and fails when any later section's tell rate exceeds the first section's
+  by more than the declared bound — a violation lands in `hard_fails`, exactly like the
+  length properties.
 - **Voice pull** — with a voice profile loaded, output should score *closer* to the sample's style than without it. *Partially covered:* the judge now sees the loaded profile when grading voice; the automated with/without style-delta comparison is still planned.
 - **Truth preservation** — every specific the prompt supplied must survive to the output (subset check). *Planned:* today this is judged (the `truth` dimension), not deterministically checked. The inverse direction — nothing fabricated — is now deterministically gated for figures, quotations, citations, and URLs.
 

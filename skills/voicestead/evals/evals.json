@@ -381,6 +381,18 @@
         "The announcement opens on the news and stays short.",
         "No numbers, dates, or launch details appear beyond what the prompt supplied."
       ]
+    },
+    {
+      "id": 32,
+      "prompt": "turn these outline notes into one doc with '## ' markdown sections for the team handbook: how we onboard, how we run standups, how we ship, how we handle incidents, how we run retros. keep my plain voice all the way through",
+      "expected_output": "One markdown document with an H2 section per outline item; the last section reads in the same register as the first: no formal creep, no late-section tell pileup, nothing invented.",
+      "files": [],
+      "assertions": [
+        "The output is one markdown document with an H2 ('## ') section for each outline item.",
+        "The later sections carry no more tell-words or formal register than the opening sections; the voice holds to the end instead of drifting.",
+        "No section gets restructured into a different shape or register from the rest; the document reads as one writer end to end.",
+        "The document invents no names, numbers, or facts beyond the outline items in the prompt."
+      ]
     }
   ]
 }

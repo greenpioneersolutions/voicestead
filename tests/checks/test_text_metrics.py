@@ -188,6 +188,20 @@ def test_plural_synergies_counted():
     assert "synergy" in one("We found synergies across both teams.", "tell_flags")["detail"]
 
 
+def test_single_contextual_tell_in_short_text_passes():
+    # 200-word floor: one literal-sense tell-word in a short note (or a short
+    # section under per-section grading) is the judge's call, not a failure
+    r = one("We signed the papers to become foster parents.", "tell_flags")
+    assert r["passed"], r
+    assert r["metric"] == 1.0  # one tell over the 200-word floor
+
+
+def test_tell_cluster_in_short_text_still_fails():
+    # NEGATIVE-PATH CANARY: the floor must not wave a genuine cluster through
+    r = one("We leverage robust seamless synergy to streamline delivery.", "tell_flags")
+    assert not r["passed"], r
+
+
 # ---- formula_structures ----
 def test_formula_false_contrast_fires():
     assert not one("It's not just speed, it's trust.", "formula_structures")["passed"]
@@ -753,3 +767,65 @@ def test_tell_words_mirror_tells_md():
     tells_md = open(os.path.join(REPO, "skills", "voicestead", "references", "tells.md"), encoding="utf-8").read().lower()
     missing = [w for w in tm.TELL_WORDS if w.lower() not in tells_md]
     assert missing == [], "TELL_WORDS entries absent from tells.md: %s" % missing
+
+
+# ---- split_sections (markdown H2 splitter for the drift guard) ----
+def test_split_sections_basic():
+    doc = "intro line\n\n## Alpha\n\na body.\n\n## Beta\n\nb body."
+    assert tm.split_sections(doc) == [("", "intro line"), ("Alpha", "a body."), ("Beta", "b body.")]
+
+
+def test_split_sections_fenced_h2_is_content():
+    # THE SPLITTER CANARY: a '## ' line inside a code fence is content, not a boundary
+    doc = "## Alpha\n\nbefore.\n\n```\n## not a heading\n```\n\nafter."
+    secs = tm.split_sections(doc)
+    assert [h for h, _ in secs] == ["Alpha"]
+    assert "## not a heading" in secs[0][1]
+
+
+def test_split_sections_tilde_fence():
+    doc = "## Alpha\n\n~~~\n## still code\n~~~\n\n## Beta\n\nb."
+    assert [h for h, _ in tm.split_sections(doc)] == ["Alpha", "Beta"]
+
+
+def test_split_sections_mixed_fence_chars_do_not_close():
+    # ~~~ lines inside a ``` fence are content, not closers: the fenced '## ' line
+    # must stay content even after two tilde lines
+    doc = "## Alpha\n\ntext.\n\n```\n~~~\n## fenced line\n~~~\n```\n\n## Beta\n\nb."
+    secs = tm.split_sections(doc)
+    assert [h for h, _ in secs] == ["Alpha", "Beta"]
+    assert "## fenced line" in secs[0][1]
+
+
+def test_split_sections_longer_fence_contains_shorter():
+    # a four-backtick fence documenting a ``` example: the inner three-backtick
+    # runs are too short to close the outer fence, so '## fake' never splits
+    doc = "## Docs\n\n````\n```\n## fake\n```\n````\n\n## Real\n\nr."
+    secs = tm.split_sections(doc)
+    assert [h for h, _ in secs] == ["Docs", "Real"]
+    assert "## fake" in secs[0][1]
+
+
+def test_split_sections_indented_backticks_are_not_a_fence():
+    # four-space indentation makes an indented code block, not a fence; a literal
+    # backtick run there must not open phantom fence state that swallows headings
+    doc = "## One\n\nbody.\n\n    ```\n\n## Two\n\nt."
+    assert [h for h, _ in tm.split_sections(doc)] == ["One", "Two"]
+
+
+def test_split_sections_no_headings_single_section():
+    # single-section docs behave exactly as before: one section, the whole text
+    assert tm.split_sections("no headings at all.") == [("", "no headings at all.")]
+
+
+def test_split_sections_h3_and_nospace_do_not_split():
+    assert [h for h, _ in tm.split_sections("### deep\nnot h2")] == [""]
+    assert [h for h, _ in tm.split_sections("##nospace\nx")] == [""]
+
+
+def test_split_sections_first_line_heading():
+    assert tm.split_sections("## First\n\nonly section") == [("First", "only section")]
+
+
+def test_split_sections_empty_text():
+    assert tm.split_sections("") == [("", "")]

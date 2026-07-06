@@ -286,7 +286,7 @@
       "load": [
         "references/coaching.md"
       ],
-      "prompt": "one of my senior engineers messaged me: 'I got offered the staff role but it means dropping the ML project I love. I don't know what to do. What would you do?' help me reply \u2014 I mentor this guy and want him to grow, not just take my answer",
+      "prompt": "one of my senior engineers messaged me: 'I got offered the staff role but it means dropping the ML project I love. I don't know what to do. What would you do?' help me reply — I mentor this guy and want him to grow, not just take my answer",
       "expected_output": "Specific acknowledgment; no prescribed decision; at most one openly-labeled piece of the writer's own experience; ends on ONE open coaching question and stops; no advice-with-a-question-mark; no question stack.",
       "deterministic_checks": [
         "no_high_conf_tells",
@@ -370,7 +370,7 @@
         "references/influence.md",
         "references/persuasion.md"
       ],
-      "prompt": "my director sent a note saying we should pause all AI tooling spend next quarter. I strongly disagree \u2014 our team's velocity gains depend on it. help me push back without torching the relationship",
+      "prompt": "my director sent a note saying we should pause all AI tooling spend next quarter. I strongly disagree — our team's velocity gains depend on it. help me push back without torching the relationship",
       "expected_output": "Accurate charitable restatement first; deliberate hedge(s) but unhedged specific ask; positive framing; genuine agreement point; stakes in director's values; composed; no invented numbers.",
       "deterministic_checks": [
         "no_invented_numbers",
@@ -840,6 +840,28 @@
         "no_invented_urls",
         "truth"
       ]
+    },
+    {
+      "id": 32,
+      "mode": "draft",
+      "type": "metamorphic",
+      "baseline_compare": false,
+      "prompt": "turn these outline notes into one doc with '## ' markdown sections for the team handbook: how we onboard, how we run standups, how we ship, how we handle incidents, how we run retros. keep my plain voice all the way through",
+      "expected_output": "One markdown document with an H2 section per outline item; the last section reads in the same register as the first: no formal creep, no late-section tell pileup, nothing invented.",
+      "deterministic_checks": [
+        "no_invented_numbers",
+        "no_high_conf_tells",
+        "tell_flags"
+      ],
+      "rubric_dimensions": [
+        "voice",
+        "human_rhythm"
+      ],
+      "must_pass": [],
+      "metamorphic": {
+        "property": "per_section_tell_rise_max",
+        "value": 1.0
+      }
     }
   ]
 }
