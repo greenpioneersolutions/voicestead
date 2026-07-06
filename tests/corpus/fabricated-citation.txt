@@ -1,0 +1,1 @@
+Reliability work pays for itself. According to Gartner, most outages trace back to deferred maintenance, and a 2019 study reached the same conclusion [1].

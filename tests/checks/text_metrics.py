@@ -204,6 +204,16 @@ def _spelled_numbers(t: str) -> set:
     return out
 
 
+# ---- shared licensing helper (Truth gate v2) ----
+_QUOTE_MIN_WORDS = 5
+
+
+def _squash(t: str) -> str:
+    """Lowercase + collapse whitespace after _normalize: the comparison space for
+    substring licensing (quotes, citations, URLs)."""
+    return re.sub(r"\s+", " ", _normalize(t)).strip().lower()
+
+
 # --------------------------- checks ---------------------------
 
 def check_no_invented_numbers(output: str, prompt: str = "", source: str = "", **kw) -> Dict:
@@ -246,6 +256,150 @@ def check_no_invented_numbers(output: str, prompt: str = "", source: str = "", *
     passed = len(invented) == 0
     detail = "no unsourced figures" if passed else f"figures not in input (possible fabrication): {sorted(invented)}"
     return {"id": "no_invented_numbers", "severity": "hard", "passed": passed, "detail": detail}
+
+
+def check_no_invented_quotes(output: str, prompt: str = "", source: str = "", **kw) -> Dict:
+    """HARD (Truth): every quotation in the output must appear in the prompt OR source.
+
+    A quotation is a quoted span of >= _QUOTE_MIN_WORDS words — double or single
+    quotes, curly variants normalized first. Licensing is a whitespace/case-normalized
+    substring match against prompt+source; a trailing period or comma inside the
+    closing quote mark is ignored (American-style punctuation placement must not read
+    as fabrication). Spans under the word floor are exempt: scare quotes and quoted
+    terms are emphasis, not citation.
+
+    Honest residual limits (judge-tier concerns, not covered here):
+    - PARAPHRASED fabrication ('the auditor said the pipeline was the cleanest ever')
+      has no quote marks and passes — the judge's truth dimension owns it;
+    - a real, licensed quote ATTRIBUTED to the wrong speaker passes;
+    - spans over 300 chars exceed _DQUOTE_SPAN/_SQUOTE_SPAN and are not extracted;
+    - a fabricated quote of 4 words or fewer rides the scare-quote exemption.
+    """
+    text = re.sub(r"\s+", " ", _normalize(output))
+    spans = [m.group(0)[1:-1] for m in _DQUOTE_SPAN.finditer(text)]
+    spans += [m.group(0)[1:-1] for m in _SQUOTE_SPAN.finditer(text)]
+    licensed = _squash(prompt) + "\n" + _squash(source)
+    invented = []
+    for span in spans:
+        if len(_words(span)) < _QUOTE_MIN_WORDS:
+            continue
+        squashed = _squash(span)
+        if squashed in licensed or squashed.rstrip(".,;:!?") in licensed:
+            continue
+        invented.append(span if len(span) <= 60 else span[:57] + "...")
+    passed = len(invented) == 0
+    detail = "no unsourced quotations" if passed else f"quotations not in input (possible fabrication): {invented}"
+    return {"id": "no_invented_quotes", "severity": "hard", "passed": passed, "detail": detail}
+
+
+# ---- citation-shaped patterns (Truth gate v2). Narrow families for precision —
+# the judge owns paraphrased or novel shapes. ----
+_CIT_AUTHOR_YEAR = re.compile(
+    r"\b([A-Z][A-Za-z'-]+)(?:\s+(?:et al\.?|&\s+[A-Z][A-Za-z'-]+|and\s+[A-Z][A-Za-z'-]+))?,?\s*\((\d{4})\)")
+_CIT_BRACKET_REF = re.compile(r"\[(\d{1,3})\](?!\()")
+_CIT_DOI = re.compile(r"\b10\.\d{4,9}/[^\s\"'<>]+")
+_CIT_ACCORDING_TO = re.compile(r"\b[Aa]ccording to (?:the )?([A-Z][\w&.'-]*(?:\s+[A-Z][\w&.'-]*){0,3})")
+_CIT_YEAR_STUDY = re.compile(r"\ba (\d{4}) (?:study|survey|report|paper|meta-analysis)\b", re.I)
+
+# Capitalized filler words carry no licensing weight for 'according to' entities:
+# 'the'/'a' appear in virtually every prompt, so letting them license would wave
+# through the most common borrowed-authority shapes ('According to The Lancet',
+# 'According to A Harvard Study', 'According to New York Magazine').
+_CIT_ENTITY_STOPWORDS = {"the", "a", "an", "of", "and", "new"}
+
+
+def _name_licensed(name: str, lic_words: set) -> bool:
+    """A cited surname is licensed when every _words() token of it appears in the
+    input. _words() splits at hyphens, so 'Smith-Jones' checks 'smith' AND 'jones'
+    against the same tokenization the licensing set was built with (apostrophe
+    names like O'Brien stay one token either way)."""
+    parts = _words(name)
+    return bool(parts) and all(p.lower() in lic_words for p in parts)
+
+
+def check_no_invented_citations(output: str, prompt: str = "", source: str = "", **kw) -> Dict:
+    """HARD (Truth): citation-shaped claims in the output must be licensed by the input.
+
+    Families, each with its own licensing rule (prompt OR source):
+    - Author (Year) — 'Alvarez (2021)', 'Kim et al. (2020)': the surname AND the year
+      must both appear in the input; a hyphenated surname ('Smith-Jones') is licensed
+      part-by-part, matching how the input side is tokenized;
+    - bracketed refs — '[1]': the same '[n]' must appear in the input (markdown links
+      '[text](url)' are exempt via the (?!\\() guard);
+    - DOIs — '10.xxxx/...': the same DOI string must appear in the input;
+    - attribution — 'according to <ProperNoun...>': some non-stopword word of the named
+      entity must appear in the input. Capitalized fillers (The/A/An/Of/And/New) never
+      license — 'the' is in every prompt, and 'According to The Lancet' must not ride
+      on it. 'according to the plan' has no proper noun and is exempt, as is an entity
+      made only of stopwords;
+    - vague-study — 'a 2019 study/survey/report/paper/meta-analysis': the year must
+      appear in the input.
+
+    Honest residual limits (judge-tier concerns, not covered here):
+    - shapeless authority ('studies show', 'experts agree') has no pattern to match;
+    - year-level licensing can't tell 'a 2019 study' from an input where 2019 was
+      only a date;
+    - a name present in the input can be misattributed ('according to Sarah' when
+      Sarah said something else);
+    - one licensed content word licenses a whole 'according to' entity — 'According
+      to New York Magazine' still passes when the input merely mentions 'york';
+    - APA-style 'Smith, 2019' without parentheses is not extracted.
+    """
+    text = re.sub(r"\s+", " ", _normalize(output))
+    lic = _squash(prompt) + "\n" + _squash(source)
+    lic_words = set(_words(lic))
+    hits = []
+    for m in _CIT_AUTHOR_YEAR.finditer(text):
+        if not _name_licensed(m.group(1), lic_words) or m.group(2) not in lic_words:
+            hits.append(m.group(0))
+    for m in _CIT_BRACKET_REF.finditer(text):
+        if "[" + m.group(1) + "]" not in lic:
+            hits.append(m.group(0))
+    for m in _CIT_DOI.finditer(text):
+        if m.group(0).rstrip(".,;:)").lower() not in lic:
+            hits.append(m.group(0))
+    for m in _CIT_ACCORDING_TO.finditer(text):
+        entity = [w for w in _words(m.group(1)) if w.lower() not in _CIT_ENTITY_STOPWORDS]
+        if entity and not any(w.lower() in lic_words for w in entity):
+            hits.append(m.group(0))
+    for m in _CIT_YEAR_STUDY.finditer(text):
+        if m.group(1) not in lic_words:
+            hits.append(m.group(0))
+    passed = len(hits) == 0
+    detail = "no unsourced citations" if passed else f"citation-shaped claims not in input (possible fabrication): {hits}"
+    return {"id": "no_invented_citations", "severity": "hard", "passed": passed, "detail": detail}
+
+
+# ---- URL licensing (Truth gate v2). String-level only — never any network call. ----
+_URL_ANY = re.compile(r"(?:https?://|www\.)[^\s<>\"')\]]+", re.I)
+
+
+def check_no_invented_urls(output: str, prompt: str = "", source: str = "", **kw) -> Dict:
+    """HARD (Truth): every URL in the output must appear in the prompt OR the source.
+
+    String-level substring match, case-insensitive, whitespace-collapsed — no network
+    calls, ever (reachability is not the question; licensing is). Extraction covers
+    bare http(s) URLs, markdown link targets, and scheme-less 'www.' links; trailing
+    sentence punctuation is stripped before comparison. A link the user never supplied
+    is a fabrication even when it points somewhere real — the skill's rule is a
+    bracketed placeholder, not a remembered address.
+
+    Honest residual limits (judge-tier concerns, not covered here):
+    - bare domains with no scheme or 'www.' ('see example.com/docs') are not seen;
+    - a URL containing ')' or ']' loses its tail to the markdown guard, so a
+      fabricated tail behind that character escapes;
+    - mailto: and other non-http schemes are not extracted.
+    """
+    text = re.sub(r"\s+", " ", _normalize(output))
+    lic = _squash(prompt) + "\n" + _squash(source)
+    invented = []
+    for m in _URL_ANY.finditer(text):
+        url = m.group(0).rstrip(".,;:!?").lower()
+        if url and url not in lic:
+            invented.append(url)
+    passed = len(invented) == 0
+    detail = "no unsourced urls" if passed else f"urls not in input (possible fabrication): {invented}"
+    return {"id": "no_invented_urls", "severity": "hard", "passed": passed, "detail": detail}
 
 
 def check_no_high_conf_tells(output: str, **kw) -> Dict:
@@ -438,6 +592,9 @@ def check_false_agency(output: str, **kw) -> Dict:
 
 REGISTRY = {
     "no_invented_numbers": check_no_invented_numbers,
+    "no_invented_quotes": check_no_invented_quotes,
+    "no_invented_citations": check_no_invented_citations,
+    "no_invented_urls": check_no_invented_urls,
     "no_high_conf_tells": check_no_high_conf_tells,
     "tell_flags": check_tell_flags,
     "formula_structures": check_formula_structures,

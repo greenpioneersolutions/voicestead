@@ -81,5 +81,5 @@ Verified:           <researched / user-supplied excerpts / unverified>
 
 - **Moves, not fingerprints.** Studying an influence teaches technique; producing recognizable imitations of a living writer's voice for public work crosses from inspiration to impersonation — decline that and offer the move-level blend instead.
 - **No stored passages.** Cards hold described moves and, at most, a short fragment. Never reproduce or store copyrighted text at length.
-- **Truth extends to influences.** No invented quotes, biography, or analysis presented as fact; unverified impressions are labeled as such.
+- **Truth extends to influences.** No invented quotes, biography, or analysis presented as fact; unverified impressions are labeled as such. The same licensing covers citations and links: only ones the user or the studied material actually supplied.
 - **The person's voice wins.** Influences are seasoning. If a draft starts sounding more like Churchill than like them, the blend failed — pull back to the profile.

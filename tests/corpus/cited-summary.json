@@ -1,0 +1,8 @@
+{
+  "name": "cited-summary (citations carried over from the source — citation gate passes)",
+  "output_file": "cited-summary.txt",
+  "prompt": "tighten this for the grant committee, keep the citations exactly as given",
+  "source": "Our pilot replicated the effect reported in Alvarez (2021). The protocol follows the procedure described in [2]. We will publish the full analysis after the second cohort.",
+  "checks": ["no_invented_citations", "no_invented_numbers", "no_high_conf_tells"],
+  "expect": {"no_invented_citations": true, "no_invented_numbers": true, "no_high_conf_tells": true}
+}

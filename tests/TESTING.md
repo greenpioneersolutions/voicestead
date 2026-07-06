@@ -8,7 +8,7 @@ Voicestead is hard to test for two reasons a normal test suite never faces: its 
 
 | Tier | Method | Catches | Cost | Deterministic? | Runs where |
 |---|---|---|---|---|---|
-| 1 | Code checks | Structural + mechanical slop (buried point, uniform rhythm, triads, tell-words, invented numbers, length) | ~free, instant | Yes | Every push/PR |
+| 1 | Code checks | Structural + mechanical slop (buried point, uniform rhythm, triads, tell-words, invented numbers/quotes/citations/URLs, length) | ~free, instant | Yes | Every push/PR |
 | 2 | LLM-as-judge | Subjective quality — voice, clarity, persuasive strength, "sounds human," restraint | API $, minutes | No (average N runs) | On demand / schedule |
 | 3 | Human review | The final call — *does it sound like me?* — and calibration of tiers 1–2 | Your time | No | Before trusting a version |
 
@@ -26,6 +26,9 @@ These are the backbone of automation: fast, free, repeatable, and perfect for ca
 What's mechanically verifiable, and how:
 
 - **`no_invented_numbers`** *(hard — the Truth rule)*. Extracts every number, %, and $ figure from the output and checks each appears in the prompt/context. A figure in the output that isn't in the input is a candidate fabrication. Placeholders like `[X]` pass. This is the single most important automated guard — a writing skill that invents statistics is dangerous, and this catches it cheaply.
+- **`no_invented_quotes`** *(hard — the Truth rule, for quotations)*. Any quoted span of five or more words in the output must appear — whitespace/case-normalized — in the prompt or source. Shorter spans are scare quotes or quoted terms and stay exempt. Paraphrased fabrication carries no quote marks for a matcher to catch; the judge's truth dimension owns it.
+- **`no_invented_citations`** *(hard — the Truth rule, for citations)*. Citation-shaped claims — `Author (Year)`, bracketed refs like `[1]`, DOIs, `according to <Name>`, `a <year> study` — must be licensed by the prompt or source. The shape families are narrow on purpose; shapeless authority ("studies show") is judge territory.
+- **`no_invented_urls`** *(hard — the Truth rule, for links)*. Every URL in the output must appear in the prompt or source. String-level only; nothing is ever fetched. A real link the user never supplied still fails: licensing comes from the input, not the model's memory.
 - **`no_high_conf_tells`** *(hard)*. Scans for the handful of phrases that are almost never justified: "in today's rapidly evolving," "it's worth noting," "at the end of the day," "that being said," etc. High precision, low false-positive.
 - **`tell_flags`** *(soft)*. Scans a curated word-list mirroring the categories in `references/tells.md` (sync enforced by a unit test) — delve, leverage, robust, seamless… Reported as flags with context, **not** an auto-fail — because "robust test coverage" is correct and only a judge/human can tell. The count feeds the score and hands candidates to Tier 2 to adjudicate. (A static list can spot the word; it can't judge the context. Respect that boundary or you'll punish good writing.)
 - **`burstiness_ok`** *(soft)*. Computes the coefficient of variation of sentence lengths (stddev ÷ mean words-per-sentence). Human prose typically lands above ~0.5; metronomic AI prose falls below ~0.4. Also flags 3+ consecutive sentences within ±2 words of each other. This is the earlier "rule of three / vary the rhythm" insight, now a number.
@@ -103,7 +106,7 @@ A few properties should hold across transformations, even without a fixed expect
 - **Restraint** — feeding an already-clean text through Improve mode must not lengthen it beyond the declared bound. (Guards the "if it's already good, stop" rule.) *Enforced:* cases with `type: metamorphic` declare a `metamorphic` block, and the orchestrator computes `length_delta_max` (output vs source) or `output_to_input_ratio_max` (output vs prompt) as a hard gate — a violation lands in `hard_fails`.
 - **Mode integrity** — Review mode output must not be a rewrite. *Enforced:* the `not_a_rewrite` check, promoted to a hard gate through `must_pass`.
 - **Voice pull** — with a voice profile loaded, output should score *closer* to the sample's style than without it. *Partially covered:* the judge now sees the loaded profile when grading voice; the automated with/without style-delta comparison is still planned.
-- **Truth preservation** — every specific the prompt supplied must survive to the output (subset check). *Planned:* today this is judged (the `truth` dimension), not deterministically checked.
+- **Truth preservation** — every specific the prompt supplied must survive to the output (subset check). *Planned:* today this is judged (the `truth` dimension), not deterministically checked. The inverse direction — nothing fabricated — is now deterministically gated for figures, quotations, citations, and URLs.
 
 ---
 
