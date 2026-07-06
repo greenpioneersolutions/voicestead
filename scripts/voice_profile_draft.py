@@ -111,6 +111,18 @@ def _count_phrases(low, phrases):
     return found
 
 
+def _count_choice_points(low, phrases):
+    """Non-overlapping phrase occurrences: each match consumes its span.
+
+    Overlapping forms would otherwise double-count one decision -- "it is not"
+    matches both "it is" and "is not", yet the writer made a single
+    contract-or-spell-out choice there. A single alternation scan, longest
+    phrase first, counts each span exactly once."""
+    pattern = r"\b(?:%s)\b" % "|".join(
+        re.escape(p) for p in sorted(phrases, key=len, reverse=True))
+    return len(re.findall(pattern, low))
+
+
 def _rate(count, words, per):
     return count / max(words, 1) * per
 
@@ -150,7 +162,7 @@ def paragraph_stats(samples):
 
 def contraction_stats(text, total_words):
     hits = [t for t in _tokens(text) if t in CONTRACTIONS]
-    expanded = sum(_count_phrases(_lower(text), EXPANDED_FORMS).values())
+    expanded = _count_choice_points(_lower(text), EXPANDED_FORMS)
     choices = len(hits) + expanded
     return {
         "count": len(hits),
@@ -362,6 +374,37 @@ def read_samples(paths):
     return samples
 
 
+def _points_into_skills_tree(dest):
+    """True when dest is the repo's skills/ dir or would land inside it.
+
+    A plain startswith check misses two real routes into the shippable tree:
+    case-variant spellings (SKILLS/ on macOS APFS, case-insensitive by
+    default) and symlinks that resolve into skills/. So this resolves
+    symlinks with realpath, compares case-normalized paths, and then walks
+    every existing ancestor of dest, asking os.path.samefile whether it IS
+    the skills dir -- which catches case variants because both spellings
+    stat to the same directory."""
+    skills = os.path.realpath(os.path.join(REPO, "skills"))
+    real = os.path.realpath(dest)
+    ncase_skills, ncase_real = os.path.normcase(skills), os.path.normcase(real)
+    if ncase_real == ncase_skills or ncase_real.startswith(ncase_skills + os.sep):
+        return True
+    if not os.path.isdir(skills):
+        return False
+    probe = real
+    while True:
+        if os.path.exists(probe):
+            try:
+                if os.path.samefile(probe, skills):
+                    return True
+            except OSError:
+                pass
+        parent = os.path.dirname(probe)
+        if parent == probe:
+            return False
+        probe = parent
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(
         description="Measure 2-3 writing samples into a draft voice-profile.md "
@@ -377,7 +420,7 @@ def main(argv=None):
 
     if args.out:
         dest = os.path.abspath(args.out)
-        if dest.startswith(os.path.join(REPO, "skills") + os.sep):
+        if _points_into_skills_tree(dest):
             print("voice_profile_draft: refusing to write %s -- profiles are "
                   "personal-by-design and never go into the shippable skills/ tree. "
                   "Pick another path (or redirect stdout) and place the file yourself."

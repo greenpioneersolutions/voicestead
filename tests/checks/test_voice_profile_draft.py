@@ -93,6 +93,29 @@ def test_pin_contraction_rate_exact():
     assert c["preference_pct"] == pytest.approx(2 / 3 * 100)
 
 
+def test_pin_overlapping_expanded_forms_count_once():
+    # "it is not" contains both "it is" and "is not" but is ONE choice point;
+    # double-counting it would deflate the rendered preference percentage.
+    m = vpd.analyze(["it is not ready for launch today.",
+                     "you are not wrong about the schedule."])
+    c = m["contractions"]
+    assert c["count"] == 0
+    assert c["expanded"] == 2                             # it is not, you are not
+    m2 = vpd.analyze(["it's ready. it is not ready.", "we ship friday either way."])
+    c2 = m2["contractions"]
+    assert c2["count"] == 1 and c2["expanded"] == 1       # a true 1:1 split
+    assert c2["preference_pct"] == pytest.approx(50.0)
+
+
+def test_pin_curly_apostrophes_count_as_contractions():
+    # Pasted-from-email text uses U+2019; _normalize must map it before matching.
+    m = vpd.analyze(["don’t worry — it’s fine. we’re close.",
+                     "that’s the plan. i’m sure. can’t wait."])
+    c = m["contractions"]
+    assert c["count"] == 6    # don't, it's, we're, that's, i'm, can't
+    assert c["expanded"] == 0
+
+
 def test_pin_punctuation_density():
     m = vpd.analyze(["wait — one; two (three) — four.", "plain words here with five."])
     p = m["punct"]
@@ -113,6 +136,16 @@ def test_pin_opener_repeats_reported():
     m = vpd.analyze(["We ship. We test. We wait.", "We iterate. Then we rest."])
     assert dict(m["openers"]["repeated"]).get("we") == 4
     assert m["openers"]["total"] == 5
+
+
+def test_pin_transitions_metric_and_render_line():
+    m = vpd.analyze(["But we shipped. But the tests failed.",
+                     "So we rolled back. So we wrote a canary."])
+    assert dict(m["openers"]["transitions"]) == {"but": 2, "so": 2}
+    out = vpd.render(m)
+    assert '- Sentence-opening transitions you favor: "but" (x2), "so" (x2).' in out
+    # And a fixture with no repeated transition opener must not get the line.
+    assert "Sentence-opening transitions" not in vpd.render(vpd.analyze([PIN_1, PIN_2]))
 
 
 def test_pin_favorites_exclude_stopwords():
@@ -172,6 +205,36 @@ def test_render_reports_computed_numbers():
     assert "3.5" in out               # mean sentence length, hand-counted
     assert "range 2–5" in out         # min-max, hand-counted
     assert "25%" in out               # question rate, hand-counted
+
+
+def test_render_branch_lines_when_signal_present():
+    # Each optional render branch must state the measured signal when it exists.
+    terse = vpd.render(vpd.analyze([TERSE_1, TERSE_2]))
+    assert "- Contractions: 6 in 53 words" in terse           # hand-counted
+    formal = vpd.render(vpd.analyze([FORMAL_1, FORMAL_2]))
+    assert "- Hedges:" in formal
+    assert 'Most used: "in my opinion" (x1), "it seems" (x1), "perhaps" (x1)' in formal
+    repeats = vpd.render(vpd.analyze(["We ship. We test. We wait.",
+                                      "We iterate. Then we rest."]))
+    assert '- Repeated sentence-starts: "we" (x4).' in repeats
+    favorites = vpd.render(vpd.analyze(
+        ["The deploy failed. The deploy stalled. The deploy works.",
+         "Deploy again tomorrow."]))
+    assert '- Words you reach for: "deploy" (x4).' in favorites
+
+
+def test_render_branch_lines_when_signal_absent():
+    # And each branch must say so honestly when the signal is missing — an
+    # inverted condition would state the opposite of what was measured.
+    pin = vpd.render(vpd.analyze([PIN_1, PIN_2]))
+    assert "- No contractions and no spelled-out forms found" in pin
+    assert "No hedges from the measured list" in pin
+    assert "- Sentence-starts vary" in pin
+    assert "- No favorite words yet" in pin
+    terse = vpd.render(vpd.analyze([TERSE_1, TERSE_2]))
+    assert "No hedges from the measured list" in terse
+    assert "- Sentence-starts vary" in terse
+    assert "- No favorite words yet" in terse
 
 
 def test_canary_render_is_deterministic():
@@ -257,6 +320,21 @@ def test_cli_missing_file_exits1(tmp_path):
     assert "no such file" in r.stderr
 
 
+def test_cli_canary_empty_sample_exits1(tmp_path):
+    a, _ = _write_samples(tmp_path)
+    empty = tmp_path / "empty.txt"
+    empty.write_text("   \n\n", encoding="utf-8")
+    r = _run(a, str(empty))
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert "sample is empty" in r.stderr
+
+
+def test_cli_canary_duplicate_stdin_exits1():
+    r = _run("-", "-", stdin_text=TERSE_1)
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert "at most one sample" in r.stderr
+
+
 def test_cli_four_samples_accepted_with_notice(tmp_path):
     a, b = _write_samples(tmp_path)
     c = tmp_path / "c.txt"
@@ -276,21 +354,62 @@ def test_cli_out_writes_file_matching_stdout(tmp_path):
     assert out.read_text(encoding="utf-8") == _run(a, b).stdout
 
 
+# If a refusal test ever fails because the guard regressed, the file it created
+# must NOT be left in the shippable skills/ tree (it would poison later runs and
+# ship in the .skill archive), so every probe cleans up in a finally block.
+
+def _assert_refused_and_clean(r, *targets):
+    try:
+        assert r.returncode == 1, r.stdout + r.stderr
+        assert "personal-by-design" in r.stderr
+        for t in targets:
+            assert not os.path.exists(t)
+    finally:
+        for t in targets:
+            if os.path.isfile(t):
+                os.unlink(t)
+
+
 def test_cli_refuses_out_into_skills_tree(tmp_path):
     a, b = _write_samples(tmp_path)
     target = os.path.join(REPO, "skills", "voicestead", "tmp-canary-vpd.md")
-    r = _run(a, b, "--out", target)
-    assert r.returncode == 1, r.stdout + r.stderr
-    assert "personal-by-design" in r.stderr
-    assert not os.path.exists(target)
+    _assert_refused_and_clean(_run(a, b, "--out", target), target)
 
 
 def test_cli_refuses_relative_out_into_skills_tree(tmp_path):
     a, b = _write_samples(tmp_path)
+    target = os.path.join(REPO, "skills", "voicestead", "tmp-canary-vpd2.md")
     r = _run(a, b, "--out", os.path.join("skills", "voicestead", "tmp-canary-vpd2.md"),
              cwd=REPO)
+    _assert_refused_and_clean(r, target)
+
+
+def test_cli_refuses_case_variant_out_into_skills_tree(tmp_path):
+    # On case-insensitive filesystems (macOS APFS default) SKILLS/ IS skills/,
+    # so a case-variant --out must be refused too. On a case-sensitive
+    # filesystem the same path is a genuinely different directory: skip.
+    if not os.path.isdir(os.path.join(REPO, "SKILLS")):
+        pytest.skip("case-sensitive filesystem: SKILLS/ is not skills/")
+    a, b = _write_samples(tmp_path)
+    target = os.path.join(REPO, "SKILLS", "voicestead", "tmp-canary-vpd-case.md")
+    real = os.path.join(REPO, "skills", "voicestead", "tmp-canary-vpd-case.md")
+    _assert_refused_and_clean(_run(a, b, "--out", target), target, real)
+
+
+def test_cli_refuses_symlinked_out_into_skills_tree(tmp_path):
+    a, b = _write_samples(tmp_path)
+    link = tmp_path / "sklink"
+    link.symlink_to(os.path.join(REPO, "skills"))
+    real = os.path.join(REPO, "skills", "voicestead", "tmp-canary-vpd-sym.md")
+    r = _run(a, b, "--out", str(link / "voicestead" / "tmp-canary-vpd-sym.md"))
+    _assert_refused_and_clean(r, real)
+
+
+def test_cli_refuses_out_at_skills_dir_itself(tmp_path):
+    a, b = _write_samples(tmp_path)
+    r = _run(a, b, "--out", os.path.join(REPO, "skills"))
     assert r.returncode == 1, r.stdout + r.stderr
-    assert not os.path.exists(os.path.join(REPO, "skills", "voicestead", "tmp-canary-vpd2.md"))
+    assert "personal-by-design" in r.stderr
 
 
 if __name__ == "__main__":
