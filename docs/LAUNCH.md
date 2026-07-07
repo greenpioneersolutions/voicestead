@@ -24,6 +24,8 @@ Run the eval on real writing — five real pieces, each generated with the skill
 
 S0 needs one thing it doesn't have yet: an `ANTHROPIC_API_KEY`. The writer's five real pieces are already committed in `tests/golden/raw/`. Until the key exists, the scorecard stays marked **pending** — in the README, on the site, everywhere. Don't fill the table with a guess to unblock a downstream task. The pending marker is honest; a fabricated figure is the one thing this skill exists to stop.
 
+Iteration, though, no longer waits on the key. The harness's default backend drives the installed `claude` binary on a Claude Code subscription (`tests/TESTING.md`, Backends), so with/without sweeps cost nothing to run today, and `scripts/log_eval_run.py` records each one in the public run ledger (`docs/evals/`). Those runs are iteration signals — use them to tune the skill toward the bar. The publishable S0 number itself comes from `--backend api` with pinned models, judged blind on the five real pieces, same bar as ever: at least 70%, zero hard-gate failures.
+
 One human check rides alongside the number: a real stranger sets up a voice profile, runs one real piece, and answers "does this sound like me, and does it respect the craft?" A judge can approximate "sounds human." It can't confirm "sounds like this person." That verdict, plus the five pieces, freezes into the golden set (S3) that anchors every future version.
 
 ## Packaging: the three doors

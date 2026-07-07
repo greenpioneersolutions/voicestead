@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 """Tier-2 LLM-as-judge. Absolute scoring and blind pairwise comparison.
 
-Requires ANTHROPIC_API_KEY. Model via --model or $JUDGE_MODEL (default: a strong, current
-model). Use a judge from a DIFFERENT model family than the one under test to reduce
-self-preference bias. Set VOICESTEAD_MOCK=1 for a keyless run: deterministic canned (but
-valid) verdicts and scores, and the anthropic package is never imported.
+Judge calls route through tests/llm_backend.py: the default backend (claude-cli) runs
+on a Claude Code subscription with no API key; `--backend api` (or
+VOICESTEAD_BACKEND=api) uses the Anthropic SDK and needs ANTHROPIC_API_KEY. Model via
+--model or $JUDGE_MODEL (default: a strong, current model). Use a judge from a
+DIFFERENT model family than the one under test to reduce self-preference bias. Set
+VOICESTEAD_MOCK=1 for a keyless run: deterministic canned (but valid) verdicts and
+scores, and no backend is ever invoked.
 
 Parsing is strict, and failure is contained instead of fatal:
 - a malformed response (bad JSON, truncation) is retried once, then recorded as a
@@ -23,16 +26,15 @@ Mock knobs (test-only, all require VOICESTEAD_MOCK=1):
 """
 import argparse, hashlib, json, os, random, re, statistics, sys
 
+HERE = os.path.dirname(os.path.abspath(__file__))
+TESTS = os.path.dirname(HERE)
+if TESTS not in sys.path:
+    sys.path.insert(0, TESTS)  # llm_backend lives one level up, in tests/
+import llm_backend
+
 MOCK = os.environ.get("VOICESTEAD_MOCK", "") not in ("", "0")
-if not MOCK:
-    try:
-        from anthropic import Anthropic
-    except ImportError:
-        print("pip install anthropic (or set VOICESTEAD_MOCK=1 for a keyless mock run)", file=sys.stderr)
-        sys.exit(2)
 
 MODEL = os.environ.get("JUDGE_MODEL", "claude-opus-4-8")
-HERE = os.path.dirname(os.path.abspath(__file__))
 
 # ---------- mock seam (VOICESTEAD_MOCK=1): canned verdicts/scores, zero network ----------
 
@@ -108,7 +110,7 @@ _CLIENT = None
 def _client():
     global _CLIENT
     if _CLIENT is None:
-        _CLIENT = _MockClient() if MOCK else Anthropic()  # Anthropic() reads ANTHROPIC_API_KEY
+        _CLIENT = _MockClient()  # only the mock path uses this; real calls go via llm_backend
     return _CLIENT
 
 
@@ -123,17 +125,21 @@ def _extract_json(text):
     return obj
 
 
-def _judge_call(user, model, max_tokens):
+def _judge_call(user, model, max_tokens, backend=None):
     """One judge call, strictly parsed. Retries once on any failure (malformed JSON,
-    truncation, API error), then returns (None, error) — the caller records a failed
+    truncation, backend error), then returns (None, error) — the caller records a failed
     run and keeps going. Returns (obj, None) on success."""
     attempt_user = user
     last_err = None
     for _ in range(2):
         try:
-            msg = _client().messages.create(model=model, max_tokens=max_tokens,
-                                            messages=[{"role": "user", "content": attempt_user}])
-            text = "".join(b.text for b in msg.content if getattr(b, "type", "") == "text")
+            if MOCK:
+                msg = _client().messages.create(model=model, max_tokens=max_tokens,
+                                                messages=[{"role": "user", "content": attempt_user}])
+                text = "".join(b.text for b in msg.content if getattr(b, "type", "") == "text")
+            else:
+                text = llm_backend.complete(attempt_user, model=model,
+                                            max_tokens=max_tokens, backend=backend)
             return _extract_json(text), None
         except Exception as e:  # noqa: BLE001 — a judge failure must be a recorded run, not a crash
             last_err = "%s: %s" % (type(e).__name__, e)
@@ -143,7 +149,8 @@ def _judge_call(user, model, max_tokens):
 
 # ---------- scoring ----------
 
-def score_absolute(output, prompt, voice="", runs=3, rubric_path=None, dims=None, model=None):
+def score_absolute(output, prompt, voice="", runs=3, rubric_path=None, dims=None, model=None,
+                   backend=None):
     """Absolute rubric scoring, `runs` samples. `voice` (the loaded profile/influences text)
     is shown to the judge when provided. `dims` restricts scoring and aggregation to those
     rubric dimensions (the case's rubric_dimensions). A sample that stays malformed after
@@ -157,7 +164,7 @@ def score_absolute(output, prompt, voice="", runs=3, rubric_path=None, dims=None
     samples = []
     failed = 0
     for _ in range(runs):
-        obj, err = _judge_call(user, model, 1024)
+        obj, err = _judge_call(user, model, 1024, backend=backend)
         if obj is None:
             failed += 1
             samples.append({"error": err})
@@ -194,7 +201,8 @@ def score_absolute(output, prompt, voice="", runs=3, rubric_path=None, dims=None
             "samples": samples}
 
 
-def compare_pairwise(a_text, b_text, prompt, runs=3, voice="", seed=None, model=None):
+def compare_pairwise(a_text, b_text, prompt, runs=3, voice="", seed=None, model=None,
+                     backend=None):
     """Blind A/B. Order is randomized per judgment (seeded, so runs reproduce) to cancel
     position bias; results are reported for the FIRST argument (by convention, with-skill).
 
@@ -216,7 +224,7 @@ def compare_pairwise(a_text, b_text, prompt, runs=3, voice="", seed=None, model=
                 "## Task\n%s%s\n\n## A\n%s\n\n## B\n%s\n\n"
                 'Return only JSON: {"winner":"A"|"B"|"tie","why":"one sentence"}'
                 % (prompt, voice_block, left, right))
-        obj, err = _judge_call(user, model, 400)
+        obj, err = _judge_call(user, model, 400, backend=backend)
         if obj is None:
             failed += 1
             detail.append({"failed": err, "order_swapped": swap})
@@ -225,7 +233,8 @@ def compare_pairwise(a_text, b_text, prompt, runs=3, voice="", seed=None, model=
         if winner not in ("A", "B", "tie"):
             # parseable JSON but an invalid verdict: one stricter retry, then report as invalid
             obj2, _err2 = _judge_call(
-                user + '\n\nThe "winner" value MUST be exactly "A", "B", or "tie".', model, 400)
+                user + '\n\nThe "winner" value MUST be exactly "A", "B", or "tie".', model, 400,
+                backend=backend)
             winner = obj2.get("winner") if isinstance(obj2, dict) else None
             if winner not in ("A", "B", "tie"):
                 invalid += 1
@@ -261,20 +270,25 @@ def main():
     ap.add_argument("--compare", nargs=2, metavar=("A", "B"))
     ap.add_argument("--model", default=MODEL)
     ap.add_argument("--runs", type=int, default=3)
+    ap.add_argument("--backend", default=None, choices=llm_backend.BACKENDS,
+                    help="claude-cli (default; runs on your Claude Code subscription) or "
+                         "api (Anthropic SDK, needs ANTHROPIC_API_KEY)")
     args = ap.parse_args()
     prompt = open(args.prompt).read() if os.path.exists(args.prompt) else args.prompt
 
     if args.compare:
         a = open(args.compare[0]).read()
         b = open(args.compare[1]).read()
-        print(json.dumps(compare_pairwise(a, b, prompt, runs=args.runs, model=args.model), indent=2))
+        print(json.dumps(compare_pairwise(a, b, prompt, runs=args.runs, model=args.model,
+                                          backend=args.backend), indent=2))
     else:
         if not args.output:
             ap.error("provide --output or --compare")
         out = open(args.output).read()
         voice = open(args.voice).read() if args.voice and os.path.exists(args.voice) else args.voice
         print(json.dumps(score_absolute(out, prompt, voice=voice, runs=args.runs,
-                                        rubric_path=args.rubric, model=args.model), indent=2))
+                                        rubric_path=args.rubric, model=args.model,
+                                        backend=args.backend), indent=2))
 
 
 if __name__ == "__main__":

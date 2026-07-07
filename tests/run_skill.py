@@ -1,20 +1,23 @@
 #!/usr/bin/env python3
-"""Invoke Claude WITH and WITHOUT the skill via the Messages API, so outputs can be graded.
+"""Invoke Claude WITH and WITHOUT the skill, so outputs can be graded.
 
 Faithful-enough progressive disclosure: the system prompt = SKILL.md, plus any reference
 files a case names in `load` (mirroring what Claude would pull in for that job). For maximum
-fidelity you can instead drive the installed skill through the Claude Agent SDK; this API
-path is chosen for portability and zero setup in CI.
+fidelity you can instead drive the installed skill through the Claude Agent SDK; this
+single-turn path is chosen for portability and zero setup in CI.
 
-Requires ANTHROPIC_API_KEY. Model via --model or $SKILL_MODEL. Set VOICESTEAD_MOCK=1 for a
-keyless run: run() returns deterministic canned text (varying by prompt) and the anthropic
-package is never imported.
+Generation routes through tests/llm_backend.py. The default backend (claude-cli) drives
+the installed `claude` binary on a Claude Code subscription - no ANTHROPIC_API_KEY.
+`--backend api` (or VOICESTEAD_BACKEND=api) uses the Anthropic SDK path and needs the
+key. Model via --model or $SKILL_MODEL. Set VOICESTEAD_MOCK=1 for a keyless run: run()
+returns deterministic canned text (varying by prompt) and no backend is ever invoked.
 
-Guards: a generation that stops for any reason other than a normal end of turn
-(max_tokens truncation, refusal), or that carries no text, RAISES instead of returning —
-an empty or truncated output must never be graded as if the skill produced it.
+Guards (enforced in llm_backend for both real backends): a generation that stops for any
+reason other than a normal end of turn (max_tokens truncation, refusal), or that carries
+no text, RAISES instead of returning - an empty or truncated output must never be graded.
 `temperature` is only sent when explicitly set; several current models reject
-non-default sampling parameters, so the default is to omit it.
+non-default sampling parameters, so the default is to omit it. The claude-cli backend
+cannot set temperature at all and raises rather than silently ignoring it.
 
 Mock knobs (test-only, require VOICESTEAD_MOCK=1):
   VOICESTEAD_MOCK_REVIEW_REWRITE=1  review-mode prompts return the quoted source verbatim
@@ -27,26 +30,16 @@ Mock knobs (test-only, require VOICESTEAD_MOCK=1):
 """
 import argparse, hashlib, os, re, sys
 
+TESTS = os.path.dirname(os.path.abspath(__file__))
+if TESTS not in sys.path:
+    sys.path.insert(0, TESTS)
+import llm_backend
+
 MOCK = os.environ.get("VOICESTEAD_MOCK", "") not in ("", "0")
-if not MOCK:
-    try:
-        from anthropic import Anthropic
-    except ImportError:
-        print("pip install anthropic (or set VOICESTEAD_MOCK=1 for a keyless mock run)", file=sys.stderr)
-        sys.exit(2)
 
 MODEL = os.environ.get("SKILL_MODEL", "claude-sonnet-5")
-REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+REPO = os.path.dirname(TESTS)
 SKILL_DIR = os.path.join(REPO, "skills", "voicestead")
-
-_CLIENT = None
-
-
-def _get_client():
-    global _CLIENT
-    if _CLIENT is None:
-        _CLIENT = Anthropic()  # reads ANTHROPIC_API_KEY
-    return _CLIENT
 
 
 def build_system(load=None):
@@ -114,35 +107,17 @@ def _mock_output(prompt, with_skill):
 
 # ---------- generation ----------
 
-def _finalize(msg):
-    """Reject truncated/refused/empty generations instead of returning them for grading."""
-    text = "".join(b.text for b in msg.content if getattr(b, "type", "") == "text")
-    stop = getattr(msg, "stop_reason", None)
-    if stop not in ("end_turn", "stop_sequence"):
-        raise RuntimeError(
-            "generation failed: stop_reason=%r (max_tokens means the output was truncated - "
-            "raise max_tokens; refusal means the model declined). This output must not be graded."
-            % stop)
-    if not text.strip():
-        raise RuntimeError("generation failed: the model returned an empty text body; nothing to grade")
-    return text
-
-
-def run(prompt, with_skill=True, load=None, temperature=None, model=None):
-    """Generate one output. `temperature=None` (the default) omits the parameter entirely."""
+def run(prompt, with_skill=True, load=None, temperature=None, model=None, backend=None):
+    """Generate one output. `temperature=None` (the default) omits the parameter entirely.
+    `backend=None` resolves via llm_backend (flag > VOICESTEAD_BACKEND > claude-cli)."""
     if MOCK:
         text = _mock_output(prompt, with_skill)
         if not text.strip():
             raise RuntimeError("mock generation returned empty text")
         return text
-    kwargs = {"model": model or MODEL, "max_tokens": 4000,
-              "messages": [{"role": "user", "content": prompt}]}
-    if temperature is not None:
-        kwargs["temperature"] = temperature
-    if with_skill:
-        kwargs["system"] = build_system(load)
-    msg = _get_client().messages.create(**kwargs)
-    return _finalize(msg)
+    return llm_backend.complete(prompt, model=model or MODEL,
+                                system=build_system(load) if with_skill else None,
+                                max_tokens=4000, temperature=temperature, backend=backend)
 
 
 def main():
@@ -153,10 +128,14 @@ def main():
     ap.add_argument("--model", default=MODEL)
     ap.add_argument("--temperature", type=float, default=None,
                     help="omit to use the model's default (some models reject non-default values)")
+    ap.add_argument("--backend", default=None, choices=llm_backend.BACKENDS,
+                    help="claude-cli (default; runs on your Claude Code subscription) or "
+                         "api (Anthropic SDK, needs ANTHROPIC_API_KEY)")
     args = ap.parse_args()
     prompt = open(args.prompt).read() if os.path.exists(args.prompt) else args.prompt
     load = [x.strip() for x in args.load.split(",") if x.strip()]
-    print(run(prompt, with_skill=not args.no_skill, load=load, temperature=args.temperature, model=args.model))
+    print(run(prompt, with_skill=not args.no_skill, load=load, temperature=args.temperature,
+              model=args.model, backend=args.backend))
 
 
 if __name__ == "__main__":

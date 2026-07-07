@@ -229,7 +229,11 @@ def _import_run_skill(monkeypatch):
     tests_dir = os.path.join(REPO, "tests")
     if tests_dir not in sys.path:
         sys.path.insert(0, tests_dir)
-    return importlib.import_module("run_skill")
+    rs = importlib.import_module("run_skill")
+    # another test file may have imported the module first, without the env var;
+    # MOCK is read at import time, so pin it rather than trust import order
+    monkeypatch.setattr(rs, "MOCK", True)
+    return rs
 
 
 class _FakeBlock(object):
@@ -257,31 +261,35 @@ class _FakeClient(object):
 
 
 def test_run_skill_omits_temperature_unless_set(monkeypatch):
+    # the api-backend guards now live in llm_backend; run_skill must still plumb
+    # temperature through unchanged (omitted unless set)
     rs = _import_run_skill(monkeypatch)
+    import llm_backend
     captured = {}
     monkeypatch.setattr(rs, "MOCK", False)
-    monkeypatch.setattr(rs, "_get_client", lambda: _FakeClient(_FakeMsg(), captured))
-    assert rs.run("hi", with_skill=False) == "hello world"
+    monkeypatch.setattr(llm_backend, "_get_client", lambda: _FakeClient(_FakeMsg(), captured))
+    assert rs.run("hi", with_skill=False, backend="api") == "hello world"
     assert "temperature" not in captured
     captured.clear()
-    rs.run("hi", with_skill=False, temperature=0.7)
+    rs.run("hi", with_skill=False, temperature=0.7, backend="api")
     assert captured["temperature"] == 0.7
 
 
 def test_run_skill_rejects_truncated_and_empty_outputs(monkeypatch):
     rs = _import_run_skill(monkeypatch)
+    import llm_backend
     monkeypatch.setattr(rs, "MOCK", False)
-    monkeypatch.setattr(rs, "_get_client",
+    monkeypatch.setattr(llm_backend, "_get_client",
                         lambda: _FakeClient(_FakeMsg(stop_reason="max_tokens"), {}))
     with pytest.raises(RuntimeError, match="max_tokens"):
-        rs.run("hi", with_skill=False)
-    monkeypatch.setattr(rs, "_get_client",
+        rs.run("hi", with_skill=False, backend="api")
+    monkeypatch.setattr(llm_backend, "_get_client",
                         lambda: _FakeClient(_FakeMsg(stop_reason="refusal"), {}))
     with pytest.raises(RuntimeError, match="refusal"):
-        rs.run("hi", with_skill=False)
-    monkeypatch.setattr(rs, "_get_client", lambda: _FakeClient(_FakeMsg(text="   "), {}))
+        rs.run("hi", with_skill=False, backend="api")
+    monkeypatch.setattr(llm_backend, "_get_client", lambda: _FakeClient(_FakeMsg(text="   "), {}))
     with pytest.raises(RuntimeError, match="empty"):
-        rs.run("hi", with_skill=False)
+        rs.run("hi", with_skill=False, backend="api")
 
 
 # ---------------------------------------------------------------- per-section drift property (tier1 unit)
