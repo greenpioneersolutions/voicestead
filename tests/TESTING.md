@@ -83,9 +83,8 @@ For the subjective dimensions, a second Claude call scores the output against an
 - **Self-preference** — a model tends to prefer text from its own family. Use a judge from a different model line than the one being tested where possible, and always calibrate against human labels (Tier 3).
 - **Goodhart** — *do not optimize the skill to please the judge.* The judge is a proxy for a good reader, not the target. When judge scores and human judgment diverge, the human wins and the rubric gets fixed.
 
-Run it:
+Run it (on your Claude Code subscription by default; add `--backend api` + a key for the pinned SDK path — see [Backends](#backends)):
 ```bash
-export ANTHROPIC_API_KEY=sk-...
 python3 tests/judge/judge.py --output out.txt --prompt prompt.txt --rubric tests/judge/rubric.md   # absolute
 python3 tests/judge/judge.py --compare a.txt b.txt --prompt prompt.txt                              # pairwise
 ```
@@ -118,6 +117,28 @@ A skill "passes" a release when hard gates never fail — including `must_pass`:
 
 ---
 
+## Backends
+
+Generation and judging go through one seam — `tests/llm_backend.py` — with three ways to run:
+
+- **`claude-cli` (the default)** shells out to your installed `claude` binary in print mode, so the whole harness runs on a Claude Code subscription with no API key. The prompt travels over stdin, tools are disabled (one turn by construction), and the model comes from `SKILL_MODEL` / `JUDGE_MODEL` or `--model`.
+- **`api`** is the Anthropic SDK path. It needs `ANTHROPIC_API_KEY`, and it's the backend for numbers you publish — pinned models, reproducible runs. CI's keyed jobs set `VOICESTEAD_BACKEND: api`.
+- **mock** — `VOICESTEAD_MOCK=1` trumps both: deterministic canned outputs, zero network, zero key.
+
+Pick per run with `--backend` on `run_eval.py`, `run_skill.py`, or `judge.py`, or set `VOICESTEAD_BACKEND`; the flag wins over the env var. One rule holds across backends: **a bad generation is never graded.** A missing binary, a nonzero exit, an error envelope, an empty result, or a truncated/refused generation raises instead of returning text — the same guard the API path has always had.
+
+Every run can go in the public run ledger under `docs/evals/`:
+
+```bash
+python3 tests/run_eval.py --cases tests/cases.json --runs 3 --out tests/results
+python3 scripts/log_eval_run.py tests/results --slug my-run --notes "what changed"
+# then commit the new docs/evals/ entry
+```
+
+`benchmark.json` records the backend, the models, and any token/cost figures the backend reported; `log_eval_run.py` copies them into the entry and refuses to write one when a required field is missing. Subscription (`claude-cli`) runs are iteration signals; the official S0 number comes from `--backend api`.
+
+---
+
 ## Metamorphic / property tests
 
 A few properties should hold across transformations, even without a fixed expected output:
@@ -139,16 +160,23 @@ A few properties should hold across transformations, even without a fixed expect
 
 ```bash
 pip3 install -r tests/requirements.txt
-export ANTHROPIC_API_KEY=sk-...            # only needed for tiers 2–3
 
 # fast, free, no key — structural regression check against the committed corpus
 python3 tests/checks/run_checks.py --corpus tests/corpus
 
 # the full evaluation: generate, grade, benchmark, scorecard
+# (default backend: your installed claude CLI on a Claude Code subscription — no key)
 python3 tests/run_eval.py --cases tests/cases.json --runs 3 --out tests/results
+
+# the pinned SDK backend — for publishable numbers; needs a key
+export ANTHROPIC_API_KEY=sk-...
+python3 tests/run_eval.py --cases tests/cases.json --runs 3 --out tests/results --backend api
 
 # keyless end-to-end rehearsal of the same pipeline (mock generations + mock judge, no anthropic import)
 VOICESTEAD_MOCK=1 python3 tests/run_eval.py --cases tests/cases.json --runs 2 --out /tmp/mockeval
+
+# log any finished run into the public ledger (docs/evals/)
+python3 scripts/log_eval_run.py tests/results --slug my-run --notes "what changed"
 ```
 
 ## How CI works
@@ -190,6 +218,7 @@ Standalone argparse + stdlib helpers, run from the repo root. None needs a key o
 | `scripts/package_skill.py` | Zips `skills/voicestead/` into `voicestead.skill`; personal profile files never ship | the skill dir or its SKILL.md is missing |
 | `scripts/check_links.py` | Resolves every relative markdown link | any link is broken |
 | `scripts/check_placeholders.py` | Sweeps for leftover pre-launch sentinel tokens | `--strict` finds one |
+| `scripts/log_eval_run.py` | Copies one eval run's `benchmark.json` figures into a `docs/evals/` ledger entry and regenerates the index | `benchmark.json` is absent or lacks a required field — it never fills a gap with a guess |
 | `scripts/voice_profile_draft.py` | Measures 2–3 writing samples into a draft voice profile on stdout; deterministic, every number computed | fewer than 2 samples, or `--out` points into `skills/` |
 
 ## Honest limits

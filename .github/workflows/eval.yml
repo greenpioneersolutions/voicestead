@@ -48,7 +48,7 @@ jobs:
           cd tests/checks
           python dogfood.py
       - name: Unit tests (guard the guards — every test file, not just text_metrics)
-        run: python -m pytest tests/checks tests/test_pipeline_mock.py -q
+        run: python -m pytest tests -q
       - name: Relative markdown links resolve
         run: python scripts/check_links.py
       - name: Mock-mode orchestrator (full pipeline logic on every push, no API key)
@@ -114,6 +114,9 @@ jobs:
         if: steps.key.outputs.present == 'true'
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # pin the SDK path: the harness default is claude-cli (a local subscription
+          # backend), which does not exist on a runner
+          VOICESTEAD_BACKEND: api
           JUDGE_MODEL: claude-opus-4-8
           SKILL_MODEL: claude-sonnet-5
         # --gate: a sub-70% win rate (or any hard-gate failure) exits nonzero,
@@ -154,6 +157,8 @@ jobs:
         if: steps.key.outputs.present == 'true'
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # the publishable S0 number comes from the pinned api backend
+          VOICESTEAD_BACKEND: api
           JUDGE_MODEL: claude-opus-4-8
           SKILL_MODEL: claude-sonnet-5
         run: python tests/run_eval.py --cases tests/golden/cases.golden.json --runs 3 --out tests/golden/results

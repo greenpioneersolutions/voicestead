@@ -44,7 +44,9 @@ jobs:
           ( cd tests/checks && python run_checks.py --corpus ../corpus )
           ( cd tests/checks && python dogfood.py )
       - name: Full unit-test suite before release
-        run: python -m pytest tests/checks tests/test_pipeline_mock.py -q
+        # the whole tests/ tree — the backend-seam canaries in tests/test_llm_backend.py
+        # included; a selection that skips a test file must never gate a release
+        run: python -m pytest tests -q
       - name: Fail on any leftover placeholder before a public release
         run: python scripts/check_placeholders.py --strict
       - name: Build the .skill

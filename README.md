@@ -69,7 +69,7 @@ Prose is hard to test: the same prompt gives different text every run, and "good
 - **Tier 2 — LLM as judge.** For the subjective dimensions a regex can't touch. A second Claude scores each output against an anchored rubric, runs several times for stability, and — the headline metric — judges *with-skill against without-skill*, blind and order-randomized. We report a win rate, not a vibe.
 - **Tier 3 — you.** One question stays human forever: *does it sound like me?* A judge can approximate "sounds human." It can't confirm it sounds like *you*. Your verdicts get saved as a golden set that anchors every future version.
 
-Full method: [`tests/TESTING.md`](tests/TESTING.md).
+Full method: [`tests/TESTING.md`](tests/TESTING.md). Every recorded run lives in the public run ledger — [`docs/evals/`](docs/evals/README.md) — with its backend, models, and figures copied straight from the run's own artifacts.
 
 ### Scorecard
 
@@ -150,9 +150,12 @@ docs/                 ARCHITECTURE, USING, LAUNCH, BETA
 pip3 install -r tests/requirements.txt
 python3 tests/checks/run_checks.py --corpus tests/corpus
 
-# run the full evaluation (needs a key)
-export ANTHROPIC_API_KEY=sk-...
+# run the full evaluation (default backend: your installed claude CLI, on a Claude Code subscription)
 python3 tests/run_eval.py --cases tests/cases.json --runs 3 --out tests/results
+
+# the pinned SDK backend — for publishable numbers; needs a key
+export ANTHROPIC_API_KEY=sk-...
+python3 tests/run_eval.py --cases tests/cases.json --runs 3 --out tests/results --backend api
 ```
 
 `tests/` and `.github/` are never loaded by Claude at runtime. `python3 -m scripts.package_skill voicestead` zips only `skills/voicestead/`.

@@ -9,6 +9,7 @@ canary being a curly-apostrophe slop injection that a naive matcher would wave t
 
 No API key, no network. Runs on Python 3.9 and 3.12.
 """
+import json
 import os
 import shutil
 import subprocess
@@ -221,6 +222,198 @@ def test_check_placeholders_strict_exits1(tmp_path):
     # Report mode (no --strict) finds the same placeholder but exits 0.
     report = _run("scripts/check_placeholders.py", cwd=str(work))
     assert report.returncode == 0, report.stdout + report.stderr
+
+
+# --------------------------------------------------------------------------- CI workflow wiring
+
+_WORKFLOWS = ("eval.yml", "pr-eval.yml", "release.yml")
+_COLLECTED_CACHE = {}
+
+
+def _pytest_selections(text):
+    """Every set of test paths handed to pytest anywhere in a workflow file."""
+    sels = set()
+    for line in text.splitlines():
+        toks = line.replace("'", " ").replace('"', " ").split()
+        if "pytest" not in toks:
+            continue
+        rest = toks[toks.index("pytest") + 1:]
+        paths = tuple(sorted(t for t in rest if t == "tests" or t.startswith("tests/")))
+        if paths:
+            sels.add(paths)
+    return sels
+
+
+def _collected_files(paths):
+    """Repo-relative test files pytest would collect for *paths* (cached per selection)."""
+    if paths not in _COLLECTED_CACHE:
+        r = subprocess.run([sys.executable, "-m", "pytest", *paths, "--collect-only", "-q"],
+                           cwd=REPO, capture_output=True, text=True)
+        assert r.returncode == 0, r.stdout + r.stderr
+        _COLLECTED_CACHE[paths] = {ln.split("::")[0] for ln in r.stdout.splitlines() if "::" in ln}
+    return _COLLECTED_CACHE[paths]
+
+
+def _all_test_files():
+    found = set()
+    for dirpath, dirnames, filenames in os.walk(os.path.join(REPO, "tests")):
+        dirnames[:] = [d for d in dirnames if d != "__pycache__"]
+        for fn in filenames:
+            if fn.startswith("test_") and fn.endswith(".py"):
+                found.add(os.path.relpath(os.path.join(dirpath, fn), REPO))
+    return found
+
+
+@pytest.mark.parametrize("wf", _WORKFLOWS)
+def test_ci_pytest_selection_collects_every_test_file(wf):
+    # REGRESSION CANARY: the workflows once ran `pytest tests/checks
+    # tests/test_pipeline_mock.py`, which silently dropped tests/test_llm_backend.py —
+    # so none of the backend seam's fail-loud canaries gated CI. Every pytest
+    # invocation in every workflow must collect every test file under tests/.
+    with open(os.path.join(REPO, ".github", "workflows", wf)) as fh:
+        sels = _pytest_selections(fh.read())
+    assert sels, "no pytest invocation found in %s" % wf
+    expected = _all_test_files()
+    assert "tests/test_llm_backend.py" in expected  # the file this canary exists for
+    for paths in sels:
+        missing = expected - _collected_files(paths)
+        assert not missing, "%s: pytest selection %r misses test files: %s" % (
+            wf, paths, sorted(missing))
+
+
+def test_contributor_eval_commands_pin_api_backend():
+    # REGRESSION CANARY: with claude-cli as the harness default, a documented
+    # "export ANTHROPIC_API_KEY + run_eval" recipe without --backend api ignores the
+    # key and burns the contributor's subscription instead. Every run_eval command on
+    # the two contributor-facing surfaces must pin the backend and say python3.
+    for rel in ("CONTRIBUTING.md", os.path.join(".github", "workflows", "pr-eval.yml")):
+        with open(os.path.join(REPO, rel)) as fh:
+            cmds = [ln.strip() for ln in fh.read().splitlines() if "run_eval.py" in ln]
+        assert cmds, "no run_eval.py command left in %s" % rel
+        for cmd in cmds:
+            assert "--backend api" in cmd, (
+                "%s shows an eval command without --backend api: %r" % (rel, cmd))
+            assert "python tests/run_eval.py" not in cmd, (
+                "%s: commands in docs use python3, not python: %r" % (rel, cmd))
+
+
+# --------------------------------------------------------------------------- log_eval_run (the run ledger)
+
+# One real mock benchmark, produced by the real orchestrator, shared by the ledger tests:
+# the ledger's job is copying artifact numbers, so the artifact must be a real one.
+
+
+@pytest.fixture(scope="module")
+def mock_eval_out(tmp_path_factory):
+    out = tmp_path_factory.mktemp("ledger") / "res"
+    env = dict(os.environ, VOICESTEAD_MOCK="1")
+    r = subprocess.run([sys.executable, os.path.join(REPO, "tests", "run_eval.py"),
+                        "--cases", os.path.join(REPO, "tests", "cases.json"),
+                        "--runs", "1", "--ids", "3", "--out", str(out)],
+                       capture_output=True, text=True, env=env)
+    assert r.returncode == 0, r.stdout + r.stderr
+    return out
+
+
+def _evals_dir(tmp_path):
+    """A fresh ledger dir seeded with the real committed README (markers included)."""
+    d = tmp_path / "evals"
+    d.mkdir()
+    shutil.copy2(os.path.join(REPO, "docs", "evals", "README.md"), str(d / "README.md"))
+    return d
+
+
+def _log(out_dir, evals_dir, *args):
+    return _run("scripts/log_eval_run.py", str(out_dir), "--dir", str(evals_dir), *args)
+
+
+def test_log_eval_run_copies_artifact_numbers(tmp_path, mock_eval_out):
+    d = _evals_dir(tmp_path)
+    r = _log(mock_eval_out, d, "--slug", "mock-rehearsal", "--notes", "pipeline rehearsal")
+    assert r.returncode == 0, r.stdout + r.stderr
+
+    bench = json.load(open(os.path.join(str(mock_eval_out), "benchmark.json")))
+    date = bench["metadata"]["timestamp"][:10]
+    entry_path = os.path.join(str(d), "%s-mock-rehearsal.md" % date)
+    assert os.path.exists(entry_path)
+    entry = open(entry_path).read()
+    # every figure below is read back from the benchmark and matched verbatim -
+    # copied, never computed
+    win = bench["overall"]["win_rate"]
+    assert "- **Backend:** mock" in entry
+    assert ("- **Cases:** %s" % bench["overall"]["cases"]) in entry
+    assert ("- **Blind win rate:** %s (%sW/%sT/%sL of %s valid)"
+            % (win["rate"], win["wins"], win["ties"], win["losses"], win["n_valid"])) in entry
+    assert "- **Tokens:** not reported by this backend" in entry  # mock never hits the seam
+    assert "run_eval.py" in entry  # the exact command rode along from the metadata
+    assert "pipeline rehearsal" in entry
+    head = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=REPO,
+                          capture_output=True, text=True).stdout.strip()
+    assert ("- **Git commit:** %s" % head) in entry
+    # the index regenerated: empty state replaced by a table row linking the entry
+    readme = open(os.path.join(str(d), "README.md")).read()
+    assert "No runs yet" not in readme
+    assert ("%s-mock-rehearsal.md" % date) in readme
+
+
+def test_log_eval_run_reports_usage_when_backend_reported_it(tmp_path, mock_eval_out):
+    work = tmp_path / "res"
+    shutil.copytree(str(mock_eval_out), str(work))
+    bp = os.path.join(str(work), "benchmark.json")
+    b = json.load(open(bp))
+    b["metadata"]["backend"] = "claude-cli"
+    b["metadata"]["llm_usage"] = {"calls": 8, "input_tokens": 88, "output_tokens": 56,
+                                  "total_cost_usd": 0.008, "cost_reported": True}
+    json.dump(b, open(bp, "w"))
+    d = _evals_dir(tmp_path)
+    r = _log(work, d, "--slug", "cli-run")
+    assert r.returncode == 0, r.stdout + r.stderr
+    date = b["metadata"]["timestamp"][:10]
+    entry = open(os.path.join(str(d), "%s-cli-run.md" % date)).read()
+    assert "- **Tokens:** 88 in / 56 out (8 calls)" in entry
+    assert "- **Cost (USD):** 0.008" in entry
+
+
+def test_log_eval_run_refuses_missing_field(tmp_path, mock_eval_out):
+    # NEGATIVE-PATH CANARY: a benchmark without provenance must be refused whole -
+    # no entry, no blank cell, no guessed value.
+    work = tmp_path / "res"
+    shutil.copytree(str(mock_eval_out), str(work))
+    bp = os.path.join(str(work), "benchmark.json")
+    b = json.load(open(bp))
+    del b["metadata"]["backend"]
+    json.dump(b, open(bp, "w"))
+    d = _evals_dir(tmp_path)
+    r = _log(work, d, "--slug", "bad-run")
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert "metadata.backend" in (r.stdout + r.stderr)
+    assert os.listdir(str(d)) == ["README.md"]  # nothing half-written
+
+
+def test_log_eval_run_requires_benchmark(tmp_path):
+    empty = tmp_path / "res"
+    empty.mkdir()
+    r = _log(empty, _evals_dir(tmp_path), "--slug", "x")
+    assert r.returncode == 1
+    assert "benchmark.json" in (r.stdout + r.stderr)
+
+
+def test_log_eval_run_refuses_readme_without_markers(tmp_path, mock_eval_out):
+    d = tmp_path / "evals"
+    d.mkdir()
+    (d / "README.md").write_text("# a ledger with no index markers\n")
+    r = _log(mock_eval_out, d, "--slug", "x")
+    assert r.returncode == 1
+    assert "marker" in (r.stdout + r.stderr).lower()
+    assert os.listdir(str(d)) == ["README.md"]  # refused before writing the entry
+
+
+def test_log_eval_run_refuses_duplicate_entry(tmp_path, mock_eval_out):
+    d = _evals_dir(tmp_path)
+    assert _log(mock_eval_out, d, "--slug", "twice").returncode == 0
+    r = _log(mock_eval_out, d, "--slug", "twice")
+    assert r.returncode == 1
+    assert "already exists" in (r.stdout + r.stderr)
 
 
 # --------------------------------------------------------------------------- per-section (run_checks --per-section)

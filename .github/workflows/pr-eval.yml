@@ -44,8 +44,8 @@ jobs:
             ( cd tests/checks && python run_checks.py --corpus ../corpus 2>&1 ) || status=1
             echo '$ python dogfood.py'
             ( cd tests/checks && python dogfood.py 2>&1 ) || status=1
-            echo '$ python -m pytest tests/checks tests/test_pipeline_mock.py -q'
-            python -m pytest tests/checks tests/test_pipeline_mock.py -q 2>&1 || status=1
+            echo '$ python -m pytest tests -q'
+            python -m pytest tests -q 2>&1 || status=1
             echo '$ python scripts/check_links.py'
             python scripts/check_links.py 2>&1 || status=1
             echo '```'
@@ -56,7 +56,7 @@ jobs:
             echo ""
             cat "$RUNNER_TEMP/details.md"
             echo ""
-            echo "> Reminder: include your **scorecard delta** in the PR — run the full eval with a key (\`python tests/run_eval.py --cases tests/cases.json\`) per CONTRIBUTING.md. Every accepted behavior change needs a case."
+            echo "> Reminder: include your **scorecard delta** in the PR — run the pinned-backend eval with a key (\`python3 tests/run_eval.py --cases tests/cases.json --backend api\`) per CONTRIBUTING.md. Every accepted behavior change needs a case."
           } > "$RUNNER_TEMP/summary.md"
           echo "status=$status" >> "$GITHUB_OUTPUT"
       - uses: actions/github-script@v7

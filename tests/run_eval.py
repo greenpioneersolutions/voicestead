@@ -25,7 +25,11 @@ completes, and the final benchmark is assembled by reading those files back, so 
 late in a paid run loses nothing (`--resume` skips cases that already have a record).
 Malformed judge output is retried once, then recorded as a failed run - never a crash.
 
-Requires ANTHROPIC_API_KEY, or VOICESTEAD_MOCK=1 for a keyless end-to-end rehearsal.
+Backends (tests/llm_backend.py): the default, claude-cli, drives the installed `claude`
+binary on a Claude Code subscription — no ANTHROPIC_API_KEY. `--backend api` (or
+VOICESTEAD_BACKEND=api; CI's keyed jobs set it) uses the Anthropic SDK and needs the key.
+VOICESTEAD_MOCK=1 trumps both for a keyless end-to-end rehearsal. benchmark.json records
+the backend, the generator/judge models, and any token/cost figures the backend reported.
 For keyless deterministic checks against the committed corpus use tests/checks/run_checks.py.
 
   python tests/run_eval.py --cases tests/cases.json --runs 3 --out tests/results [--ids 1,2,5] [--gate]
@@ -36,7 +40,10 @@ from datetime import datetime, timezone
 TESTS = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(TESTS, "checks"))
 sys.path.insert(0, os.path.join(TESTS, "judge"))
+if TESTS not in sys.path:
+    sys.path.insert(0, TESTS)
 import text_metrics as tm
+import llm_backend
 
 REPO = os.path.dirname(TESTS)
 SKILL_DIR = os.path.join(REPO, "skills", "voicestead")
@@ -177,9 +184,9 @@ def _evaluate_case(case, args, run_skill, judge):
 
     with_outs, without_outs = [], []
     for _ in range(args.runs):
-        with_outs.append(run_skill.run(prompt, with_skill=True, load=load))
+        with_outs.append(run_skill.run(prompt, with_skill=True, load=load, backend=args.backend))
         if case.get("baseline_compare"):
-            without_outs.append(run_skill.run(prompt, with_skill=False))
+            without_outs.append(run_skill.run(prompt, with_skill=False, backend=args.backend))
 
     # Tier 1 on BOTH arms - the without arm is what makes the pass-rate delta meaningful
     t1 = [tier1(o, case, prompt, loaded_text) for o in with_outs]
@@ -192,7 +199,8 @@ def _evaluate_case(case, args, run_skill, judge):
     # Tier 2: rubric scoring restricted to the case's declared dimensions, with any
     # loaded voice/influences fixture shown to the judge
     dims = case.get("rubric_dimensions") or None
-    j = [judge.score_absolute(o, prompt, voice=voice, runs=args.judge_runs, dims=dims)
+    j = [judge.score_absolute(o, prompt, voice=voice, runs=args.judge_runs, dims=dims,
+                              backend=args.backend)
          for o in with_outs]
 
     # blind pairwise on EVERY generated pair, seeded per pair for reproducible ordering
@@ -200,7 +208,8 @@ def _evaluate_case(case, args, run_skill, judge):
     if case.get("baseline_compare"):
         for k, (w, wo) in enumerate(zip(with_outs, without_outs)):
             pairs.append(judge.compare_pairwise(w, wo, prompt, runs=args.pair_judgments,
-                                                voice=voice, seed=case["id"] * 1000 + k))
+                                                voice=voice, seed=case["id"] * 1000 + k,
+                                                backend=args.backend))
 
     return {"eval_id": case["id"], "mode": case.get("mode"), "type": case.get("type"),
             "with_skill_tier1": t1,
@@ -244,6 +253,10 @@ def main(argv=None):
     ap.add_argument("--min-win-rate", type=float, default=0.70)
     ap.add_argument("--resume", action="store_true",
                     help="skip cases that already have a record in <out>/partial/")
+    ap.add_argument("--backend", default=None, choices=llm_backend.BACKENDS,
+                    help="claude-cli (default; runs on your Claude Code subscription) or "
+                         "api (Anthropic SDK, needs ANTHROPIC_API_KEY); VOICESTEAD_MOCK=1 "
+                         "trumps both")
     ap.add_argument("--tier1-only", action="store_true", help=argparse.SUPPRESS)
     args = ap.parse_args(argv)
     if args.tier1_only:
@@ -365,6 +378,14 @@ def main(argv=None):
                               "judge_runs_per_output": args.judge_runs,
                               "pair_judgments_per_pair": args.pair_judgments,
                               "mock": os.environ.get("VOICESTEAD_MOCK", "") not in ("", "0"),
+                              # provenance for the run ledger (scripts/log_eval_run.py):
+                              # which backend generated/judged, with which models, and the
+                              # token/cost totals the backend itself reported (never estimated)
+                              "backend": llm_backend.resolve_backend(args.backend),
+                              "skill_model": run_skill.MODEL,
+                              "judge_model": judge.MODEL,
+                              "llm_usage": llm_backend.usage_snapshot(),
+                              "command": " ".join(sys.argv),
                               "evals_run": [c["id"] for c in cases]},
                  "runs": runs_out, "overall": overall}
     _write_json(os.path.join(args.out, "benchmark.json"), benchmark)

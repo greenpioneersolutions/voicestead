@@ -181,4 +181,5 @@ No. It's a local file on your machine in Claude Code, or a document inside your 
 ## More
 
 - Curious whether it works? The project answers that with a test harness rather than adjectives — see [`tests/TESTING.md`](../tests/TESTING.md). The public scorecard reports a blind win rate against Claude with no skill loaded; the target is at least 70%, and no number goes in the table until it's measured on real writing.
+- Working from a clone with Claude Code installed? The eval harness runs on your subscription by default — `python3 tests/run_eval.py --cases tests/cases.json --runs 3 --out tests/results`, no API key — and `python3 scripts/log_eval_run.py` records any finished run in the public ledger at [`docs/evals/`](evals/README.md). Publishable numbers still come from `--backend api`.
 - The skill's own rules and reasoning live under [`skills/voicestead/references/`](../skills/voicestead/references/).
