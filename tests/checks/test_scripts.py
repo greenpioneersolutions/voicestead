@@ -224,6 +224,79 @@ def test_check_placeholders_strict_exits1(tmp_path):
     assert report.returncode == 0, report.stdout + report.stderr
 
 
+# --------------------------------------------------------------------------- CI workflow wiring
+
+_WORKFLOWS = ("eval.yml", "pr-eval.yml", "release.yml")
+_COLLECTED_CACHE = {}
+
+
+def _pytest_selections(text):
+    """Every set of test paths handed to pytest anywhere in a workflow file."""
+    sels = set()
+    for line in text.splitlines():
+        toks = line.replace("'", " ").replace('"', " ").split()
+        if "pytest" not in toks:
+            continue
+        rest = toks[toks.index("pytest") + 1:]
+        paths = tuple(sorted(t for t in rest if t == "tests" or t.startswith("tests/")))
+        if paths:
+            sels.add(paths)
+    return sels
+
+
+def _collected_files(paths):
+    """Repo-relative test files pytest would collect for *paths* (cached per selection)."""
+    if paths not in _COLLECTED_CACHE:
+        r = subprocess.run([sys.executable, "-m", "pytest", *paths, "--collect-only", "-q"],
+                           cwd=REPO, capture_output=True, text=True)
+        assert r.returncode == 0, r.stdout + r.stderr
+        _COLLECTED_CACHE[paths] = {ln.split("::")[0] for ln in r.stdout.splitlines() if "::" in ln}
+    return _COLLECTED_CACHE[paths]
+
+
+def _all_test_files():
+    found = set()
+    for dirpath, dirnames, filenames in os.walk(os.path.join(REPO, "tests")):
+        dirnames[:] = [d for d in dirnames if d != "__pycache__"]
+        for fn in filenames:
+            if fn.startswith("test_") and fn.endswith(".py"):
+                found.add(os.path.relpath(os.path.join(dirpath, fn), REPO))
+    return found
+
+
+@pytest.mark.parametrize("wf", _WORKFLOWS)
+def test_ci_pytest_selection_collects_every_test_file(wf):
+    # REGRESSION CANARY: the workflows once ran `pytest tests/checks
+    # tests/test_pipeline_mock.py`, which silently dropped tests/test_llm_backend.py —
+    # so none of the backend seam's fail-loud canaries gated CI. Every pytest
+    # invocation in every workflow must collect every test file under tests/.
+    with open(os.path.join(REPO, ".github", "workflows", wf)) as fh:
+        sels = _pytest_selections(fh.read())
+    assert sels, "no pytest invocation found in %s" % wf
+    expected = _all_test_files()
+    assert "tests/test_llm_backend.py" in expected  # the file this canary exists for
+    for paths in sels:
+        missing = expected - _collected_files(paths)
+        assert not missing, "%s: pytest selection %r misses test files: %s" % (
+            wf, paths, sorted(missing))
+
+
+def test_contributor_eval_commands_pin_api_backend():
+    # REGRESSION CANARY: with claude-cli as the harness default, a documented
+    # "export ANTHROPIC_API_KEY + run_eval" recipe without --backend api ignores the
+    # key and burns the contributor's subscription instead. Every run_eval command on
+    # the two contributor-facing surfaces must pin the backend and say python3.
+    for rel in ("CONTRIBUTING.md", os.path.join(".github", "workflows", "pr-eval.yml")):
+        with open(os.path.join(REPO, rel)) as fh:
+            cmds = [ln.strip() for ln in fh.read().splitlines() if "run_eval.py" in ln]
+        assert cmds, "no run_eval.py command left in %s" % rel
+        for cmd in cmds:
+            assert "--backend api" in cmd, (
+                "%s shows an eval command without --backend api: %r" % (rel, cmd))
+            assert "python tests/run_eval.py" not in cmd, (
+                "%s: commands in docs use python3, not python: %r" % (rel, cmd))
+
+
 # --------------------------------------------------------------------------- log_eval_run (the run ledger)
 
 # One real mock benchmark, produced by the real orchestrator, shared by the ledger tests:

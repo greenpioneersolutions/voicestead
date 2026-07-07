@@ -22,18 +22,18 @@ python3 tests/checks/run_checks.py --corpus tests/corpus
 
 That's the same net CI runs on every push: structural and mechanical slop (buried point, flat rhythm, triads, tell-words, invented numbers, onboarding re-pitch). If it's red, fix it before you open the PR.
 
-The full model-graded eval **needs a key** and costs a little:
+The full model-graded eval runs on your Claude Code subscription by default — the harness drives your installed `claude` binary, no key required (see [Backends](tests/TESTING.md#backends)). Those runs are iteration signals: cheap to repeat, good for tuning. The scorecard a PR cites comes from the pinned `api` backend, which **needs a key** and costs a little:
 
 ```bash
 export ANTHROPIC_API_KEY=sk-...
-python3 tests/run_eval.py --cases tests/cases.json --runs 3 --out tests/results
+python3 tests/run_eval.py --cases tests/cases.json --runs 3 --out tests/results --backend api
 ```
 
 It generates with and without the skill, judges the pairs blind, and writes `tests/results/scorecard.md`. That scorecard is the receipt.
 
 ## What a PR must include
 
-The **scorecard delta.** Show the numbers before your change and after — win rate, pass-rate delta, any hard-gate failures. A green Tier-1 run is the floor; if your change touches behavior a judge scores, paste the with/without scorecard so a reviewer can see the skill got better and nothing regressed. No number to show yet (no key)? Say so plainly and include the Tier-1 output — honesty about what you measured beats a made-up percentage. This repo exists to stop writing tools from inventing numbers; we hold our own PRs to that too.
+The **scorecard delta.** Show the numbers before your change and after — win rate, pass-rate delta, any hard-gate failures. A green Tier-1 run is the floor; if your change touches behavior a judge scores, paste the with/without scorecard so a reviewer can see the skill got better and nothing regressed. No pinned-backend number yet (no key)? Say so plainly and include the Tier-1 output, plus a subscription (`claude-cli`) scorecard if you ran one — labeled as the iteration signal it is. Honesty about what you measured beats a made-up percentage. This repo exists to stop writing tools from inventing numbers; we hold our own PRs to that too.
 
 ## What's open, and what's personal by design
 

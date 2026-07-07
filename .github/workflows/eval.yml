@@ -48,7 +48,7 @@ jobs:
           cd tests/checks
           python dogfood.py
       - name: Unit tests (guard the guards — every test file, not just text_metrics)
-        run: python -m pytest tests/checks tests/test_pipeline_mock.py -q
+        run: python -m pytest tests -q
       - name: Relative markdown links resolve
         run: python scripts/check_links.py
       - name: Mock-mode orchestrator (full pipeline logic on every push, no API key)
