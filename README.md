@@ -75,11 +75,11 @@ Full method: [`tests/TESTING.md`](tests/TESTING.md). Every recorded run lives in
 
 | Metric | Target | Result |
 |---|---|---|
-| Blind win rate vs. no skill | ≥ 70% | **pending S0** |
-| Hard-gate failures (invented facts, high-confidence tells) | 0 | **pending S0** |
-| Previously-shipping golden cases regressed | 0 | **pending S0** |
+| Blind win rate vs. no skill | ≥ 70% | **78.3%** — directional* |
+| Hard-gate failures (skill's own drafts) | 0 | **3 of 32*** |
+| Previously-shipping golden cases regressed | 0 | *golden set not in this run* |
 
-*No number goes in this table until it's measured — on real writing, judged blind. It gets published here the day it's run. A writing skill that invents its own results is the exact thing this one exists to stop.*
+*First read, 2026-07-08 — all 32 cases at `--runs 1` on a Claude Code subscription (`claude-cli` backend). **Directional, not the averaged official number** (23 blind judgments; an averaged `--runs 3` or pinned `--backend api` run comes next). The three hard-gate cases are honest misses, not fabrications hidden: an over-expanded short edit, an accurate-but-unsourced date, and an incomplete de-slop — full breakdown and provenance in [`docs/evals/`](docs/evals/). No number goes in this table until it's measured, judged blind; a writing skill that invents its own results is the exact thing this one exists to stop.*
 
 ---
 
