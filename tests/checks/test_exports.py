@@ -146,3 +146,23 @@ def test_agents_footer_lists_every_reference_once():
     footer = bx._agents_footer(bx.reference_files())
     for name, _ in bx.reference_files():
         assert footer.count("/references/%s" % name) == 1
+
+
+def test_check_passes_on_committed_tree():
+    # After write_all has been run and committed, the committed derived files
+    # must match a fresh generation and the seal must be current.
+    assert bx.check() == 0
+
+
+def test_check_detects_a_stale_derived_file(tmp_path, monkeypatch):
+    # Point EXPORTS at a fresh copy, write it, mutate one file, expect failure.
+    import shutil
+    src = bx.EXPORTS
+    dst = tmp_path / "exports"
+    shutil.copytree(src, dst)
+    monkeypatch.setattr(bx, "EXPORTS", str(dst))
+    monkeypatch.setattr(bx, "CORE", str(dst / "core.md"))
+    assert bx.check() == 0
+    stale = dst / "chatgpt" / "instructions.txt"
+    stale.write_text("tampered", encoding="utf-8")
+    assert bx.check() == 1

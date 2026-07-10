@@ -141,6 +141,67 @@ def validate(derived):
     return errors
 
 
+def _managed_knowledge_dirs():
+    return ["chatgpt/knowledge", "gemini/knowledge"]
+
+
+def write_all():
+    """Write every derived file under exports/. Refuses on hard-limit violations."""
+    derived = build_derived()
+    errors = validate(derived)
+    if errors:
+        print("BUILD BLOCKED (%d):" % len(errors))
+        for e in errors:
+            print("  " + e)
+        return 1
+    for rel, content in sorted(derived.items()):
+        dest = os.path.join(EXPORTS, rel)
+        os.makedirs(os.path.dirname(dest), exist_ok=True)
+        with open(dest, "w", encoding="utf-8") as fh:
+            fh.write(content)
+    if parse_seal(read_core()) != skill_hash():
+        print("wrote %d derived files. WARNING: core.md seal is stale — run --reseal" % len(derived))
+    else:
+        print("wrote %d derived files (seal ok)" % len(derived))
+    return 0
+
+
+def check():
+    """Verify committed derived files are fresh, within limits, and sealed. CI gate."""
+    derived = build_derived()
+    errors = list(validate(derived))
+
+    if parse_seal(read_core()) != skill_hash():
+        errors.append(
+            "core.md seal does not match SKILL.md — re-condense core.md then run "
+            "`python -m scripts.build_exports --reseal`"
+        )
+
+    for rel, content in sorted(derived.items()):
+        dest = os.path.join(EXPORTS, rel)
+        current = _read_text(dest) if os.path.exists(dest) else None
+        if current != content:
+            errors.append("stale export: exports/%s — run `python -m scripts.build_exports`" % rel)
+
+    # Catch leftover knowledge files after a reference is deleted/renamed.
+    expected = set(derived)
+    for sub in _managed_knowledge_dirs():
+        d = os.path.join(EXPORTS, sub)
+        if os.path.isdir(d):
+            for f in os.listdir(d):
+                rel = "%s/%s" % (sub, f)
+                if rel not in expected:
+                    errors.append("orphan export: exports/%s — run `python -m scripts.build_exports`" % rel)
+
+    if errors:
+        print("EXPORTS CHECK FAILED (%d):" % len(errors))
+        for e in errors:
+            print("  " + e)
+        return 1
+    print("exports check clean: %d derived files fresh, seal ok" % len(derived))
+    return 0
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Generate exports/ from the canonical skill")
     ap.add_argument("--check", action="store_true", help="verify committed exports are fresh")
@@ -154,8 +215,9 @@ def main(argv=None):
         print("resealed core.md -> %s" % skill_hash())
         return 0
 
-    print("build_exports: scaffold only (builders wired in Task 6)")
-    return 0
+    if args.check:
+        return check()
+    return write_all()
 
 
 if __name__ == "__main__":
