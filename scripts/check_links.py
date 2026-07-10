@@ -28,6 +28,7 @@ SCAN_PATTERNS = [
     "docs/*.md",
     os.path.join("skills", "**", "*.md"),
     os.path.join("tests", "**", "*.md"),
+    os.path.join("exports", "**", "*.md"),
 ]
 
 # [text](target) or ![alt](target), with an optional "title" after the target.

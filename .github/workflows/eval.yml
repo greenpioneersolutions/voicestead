@@ -51,6 +51,8 @@ jobs:
         run: python -m pytest tests -q
       - name: Relative markdown links resolve
         run: python scripts/check_links.py
+      - name: Exports are fresh, sealed, and within platform limits
+        run: python -m scripts.build_exports --check
       - name: Mock-mode orchestrator (full pipeline logic on every push, no API key)
         env:
           VOICESTEAD_MOCK: "1"

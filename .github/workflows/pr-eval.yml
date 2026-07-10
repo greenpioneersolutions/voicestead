@@ -48,6 +48,8 @@ jobs:
             python -m pytest tests -q 2>&1 || status=1
             echo '$ python scripts/check_links.py'
             python scripts/check_links.py 2>&1 || status=1
+            echo '$ python -m scripts.build_exports --check'
+            python -m scripts.build_exports --check 2>&1 || status=1
             echo '```'
           } > "$RUNNER_TEMP/details.md"
           if [ "$status" = "0" ]; then verdict="PASS"; else verdict="FAIL"; fi
