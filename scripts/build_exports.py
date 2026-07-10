@@ -83,6 +83,36 @@ def _read_text(path):
         return fh.read()
 
 
+def build_derived():
+    """Return {path relative to exports/: text} for every GENERATED file.
+
+    Static docs (SETUP.md, README.md, conversation-starters.txt, core.md) are
+    authored by hand and intentionally excluded here.
+    """
+    instructions = strip_seal(read_core())
+    refs = reference_files()
+    derived = {}
+
+    # ChatGPT
+    derived["chatgpt/instructions.txt"] = instructions
+    for name, path in refs:
+        derived["chatgpt/knowledge/%s" % name] = _read_text(path)
+
+    return derived
+
+
+def validate(derived):
+    """Return a list of hard-limit violations (empty when clean)."""
+    errors = []
+    instr = derived.get("chatgpt/instructions.txt", "")
+    if len(instr) > CHATGPT_CHAR_LIMIT:
+        errors.append(
+            "chatgpt/instructions.txt is %d chars, over the %d limit — tighten core.md"
+            % (len(instr), CHATGPT_CHAR_LIMIT)
+        )
+    return errors
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Generate exports/ from the canonical skill")
     ap.add_argument("--check", action="store_true", help="verify committed exports are fresh")

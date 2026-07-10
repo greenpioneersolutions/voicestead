@@ -82,3 +82,32 @@ def test_core_names_every_reference():
     assert "Reference library" in body
     for name, _ in bx.reference_files():
         assert name in body, "core.md never mentions reference %s" % name
+
+
+def test_build_derived_includes_chatgpt_instructions_and_knowledge():
+    derived = bx.build_derived()
+    assert "chatgpt/instructions.txt" in derived
+    for name, _ in bx.reference_files():
+        assert "chatgpt/knowledge/%s" % name in derived
+
+
+def test_chatgpt_instructions_equal_core_body_within_limit():
+    derived = bx.build_derived()
+    instr = derived["chatgpt/instructions.txt"]
+    assert instr == bx.strip_seal(bx.read_core())
+    assert len(instr) <= bx.CHATGPT_CHAR_LIMIT
+
+
+def test_chatgpt_knowledge_files_match_source_references():
+    derived = bx.build_derived()
+    for name, path in bx.reference_files():
+        assert derived["chatgpt/knowledge/%s" % name] == open(path, encoding="utf-8").read()
+
+
+def test_validate_flags_oversize_instructions():
+    errors = bx.validate({"chatgpt/instructions.txt": "x" * (bx.CHATGPT_CHAR_LIMIT + 1)})
+    assert any("8000" in e or "limit" in e for e in errors)
+
+
+def test_validate_clean_on_real_build():
+    assert bx.validate(bx.build_derived()) == []
