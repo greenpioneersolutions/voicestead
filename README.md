@@ -45,28 +45,56 @@ Underneath sit three mental models — name the one job, point first, say it to 
 
 ## Install
 
-**Two minutes. Three doors. Zero cost.** Pick the one that matches how you use Claude — copy, paste, done, and your next draft comes out sounding like a person.
+Voicestead is a Claude Skill, and it now runs well beyond Claude. Pick your platform — copy, paste, done, and your next draft comes out sounding like a person.
 
-**Door 1 — Claude Code plugin.** One command, and you get updates when the version bumps.
+### Claude Code
+
+**Plugin** — one command, and you get updates when the version bumps:
 
 ```
 /plugin marketplace add greenpioneersolutions/voicestead
 /plugin install voicestead@voicestead
 ```
 
-**Door 2 — Copy the folder.** Claude Code, no marketplace.
+**Folder copy** — no marketplace:
 
 ```bash
 cp -r skills/voicestead ~/.claude/skills/
 ```
 
-**Door 3 — Upload to claude.ai.** For Projects and the desktop app.
+### claude.ai (Projects, desktop)
 
 ```bash
 python3 -m scripts.package_skill voicestead   # builds voicestead.skill
 ```
 
-Attach `voicestead.skill` to a GitHub Release, then upload it under Customize → Skills.
+Upload `voicestead.skill` under Customize → Skills.
+
+### ChatGPT, Gemini, and AGENTS.md tools
+
+Paste-ready bundles live in [`exports/`](exports/README.md):
+
+- **ChatGPT** (Custom GPT or Project) — [`exports/chatgpt/`](exports/chatgpt/SETUP.md)
+- **Gemini** (Gem) — [`exports/gemini/`](exports/gemini/SETUP.md)
+- **AGENTS.md** (Codex, Copilot, Cursor, Zed, Amp) — [`exports/agents/`](exports/agents/SETUP.md)
+
+### Skill-native coding tools
+
+Cursor, Codex, Copilot, Gemini CLI, and Windsurf read Agent Skills directly — copy the folder into `.agents/skills/` and keep the full references:
+
+```bash
+cp -r skills/voicestead /path/to/project/.agents/skills/voicestead
+```
+
+### What each surface keeps
+
+| Capability | Claude | Skill-native | ChatGPT / Gemini | AGENTS.md |
+|---|---|---|---|---|
+| On-demand references | ✅ | ✅ | ⚠️ retrieval | ❌ repo links |
+| Voice-profile persistence | ✅ file | ✅ file | ⚠️ paste | ⚠️ in-file |
+| Install | plugin | copy folder | paste + upload | copy one file |
+
+`⚠️` = works with a caveat — the honest limits are in [`docs/PLATFORMS.md`](docs/PLATFORMS.md).
 
 ---
 
@@ -131,7 +159,7 @@ Out of the box it sounds like a clean, plain human — good, but generic. It sou
 No, by design. When a draft has no real specifics, it flags the gap and asks you for one — it never fabricates a number or a quote. This is enforced, not just encouraged: the hard gate in Tier 1 fails any output containing a figure that wasn't in your input.
 
 **claude.ai or Claude Code — which door do I use?**
-Claude Code users take Door 1 or 2. If you work in claude.ai Projects or the desktop app, take Door 3 and upload the `.skill`. Same skill either way; only the delivery differs.
+Claude Code: install the plugin or copy the folder into `~/.claude/skills/`. claude.ai Projects or desktop: build the `.skill` and upload it under Customize → Skills. On ChatGPT, Gemini, or an AGENTS.md tool? Each now has its own paste-ready bundle in [`exports/`](exports/README.md). Same skill everywhere; only the delivery differs.
 
 **How is it tested?**
 A three-tier harness: free deterministic checks on every push, an LLM judge on demand, and a human for the final "sounds like me?" call. The headline number is a blind win rate against Claude with no skill loaded. See the scorecard above and [`tests/TESTING.md`](tests/TESTING.md).
@@ -179,6 +207,8 @@ skills/voicestead/    the skill — the only thing packaged into voicestead.skil
 tests/                the three-tier eval harness (dev-only, never shipped)
 .claude-plugin/       plugin.json + marketplace.json (Door 1)
 scripts/              package_skill.py, check_placeholders.py
+exports/              paste-ready bundles for ChatGPT, Gemini, AGENTS.md (generated + committed)
+exports/core.md       hand-authored ≤8k distillation; build_exports.py assembles the rest
 docs/                 ARCHITECTURE, USING, LAUNCH, BETA
 brand/                logo, favicon, OG card, color + type tokens (dev-only, never shipped)
 .github/workflows/    CI: check (free) on every push, evaluate + golden on dispatch

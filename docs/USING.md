@@ -10,6 +10,18 @@ The README is the front door. This is the manual you keep open while you work.
 
 Three doors. Pick the one that matches how you use Claude, and copy the commands exactly.
 
+For ChatGPT, Gemini, or AGENTS.md tools, use the paste-ready bundles in [`../exports/`](../exports/README.md) — each folder has a `SETUP.md`. Which door:
+
+| You use… | Door |
+|---|---|
+| Claude Code | Plugin or folder copy (below) |
+| claude.ai Projects / desktop | `.skill` upload (below) |
+| ChatGPT | [`exports/chatgpt/`](../exports/chatgpt/SETUP.md) |
+| Gemini | [`exports/gemini/`](../exports/gemini/SETUP.md) |
+| Codex / Copilot / Cursor / Zed | [`exports/agents/`](../exports/agents/SETUP.md) |
+
+Persistence differs by surface: on Claude Code your `voice-profile.md` is a local file the skill rereads; on ChatGPT/Gemini you paste the profile into the instructions or add it as a knowledge file. See [`PLATFORMS.md`](PLATFORMS.md).
+
 **Door 1 — Claude Code plugin.** The cleanest option, and you get updates when the version bumps.
 
 ```

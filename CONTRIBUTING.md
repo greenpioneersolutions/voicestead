@@ -49,3 +49,17 @@ Some surfaces are built for community help. Some are meant to stay one person's,
 - **Influences** — the influence files are personal study notes. Same reasoning: the mechanism is shared, the contents are yours.
 
 If you're not sure which bucket your idea falls in, open an issue first and ask. We'd rather talk it through than turn a good contribution away at the door.
+
+### Changing the skill? Refresh the exports
+
+`skills/voicestead/SKILL.md` is the source of truth, but three flat-surface platforms ship a condensed copy. If you edit `SKILL.md`:
+
+1. Re-condense `exports/core.md` to reflect the change (keep it ≤ 8,000 characters).
+2. Re-seal and rebuild:
+   ```bash
+   python -m scripts.build_exports --reseal
+   python -m scripts.build_exports
+   ```
+3. Commit the regenerated `exports/`.
+
+CI (`python -m scripts.build_exports --check`) fails if `core.md` is stale, the ChatGPT instructions exceed 8,000 chars, Gemini exceeds 10 knowledge files, or any committed export is out of date.

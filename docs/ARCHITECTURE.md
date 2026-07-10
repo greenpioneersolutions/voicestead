@@ -137,3 +137,20 @@ The rules aren't invented. They trace to a lineage — Pinker's classic style an
 `science.md` holds the scholarly base — clarity and fluency, concreteness, narrative transportation, the misread-tone effect, conversational receptiveness, values reframing. Two disciplines make it trustworthy rather than decorative. First, every entry is marked by verification status: ✔ verified at source, or ◇ training-sourced and re-verify before quoting numbers publicly. Second, it keeps a *failed replication* on purpose — a 2010 finding on expert hedging that a 2024 registered replication couldn't reproduce — as a worked example of why the project verifies before it encodes. For a skill whose first rule is truth, hiding the study that didn't hold up would be the tell.
 
 And the whole edifice defers to one arbiter. These studies are averages from contexts that aren't yours; effects are directional tendencies, not laws. So when a citation and your own tested results disagree, the eval wins. The research sets the priors; your writing, judged blind, settles them.
+
+## Multi-platform exports
+
+The skill is the source of truth; other platforms are generated from it, never forked.
+
+```
+skills/voicestead/SKILL.md + references/   canonical
+        │
+exports/core.md                            hand-authored ≤8k distillation, SHA-256-sealed to SKILL.md
+scripts/build_exports.py                   mechanical assembler
+        │
+exports/{chatgpt,gemini,agents}/           committed, paste-ready bundles
+```
+
+`core.md` is the only maintained derivative. It opens with a seal comment recording the hash of the `SKILL.md` it was condensed from; `build_exports.py --check` (run in CI) fails if `SKILL.md` changed without `core.md` being re-condensed and re-sealed (`--reseal`). Everything else under `exports/` — the two `instructions.txt`, the `knowledge/` copies, and `agents/AGENTS.md` — is regenerated and diffed against the committed tree on every push, so a stale export can't merge. The static `SETUP.md` files and `README.md` are authored by hand and covered by the link checker.
+
+Flat surfaces lose author-controlled progressive disclosure (references become retrieval or repo links) — documented honestly in [`PLATFORMS.md`](PLATFORMS.md).
