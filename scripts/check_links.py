@@ -2,10 +2,14 @@
 """Check that relative markdown links point at files that exist.
 
 Scans README.md, CONTRIBUTING.md, CHANGELOG.md, docs/*.md, skills/**/*.md,
-and tests/**/*.md for inline links and images. External links (http/https),
-mailto: links, and same-page anchors (#...) are skipped; everything else is
-resolved relative to the file that contains it. Fenced code blocks and inline
-code spans are ignored so example snippets never false-positive.
+tests/**/*.md, and the exports/ setup docs (exports/README.md, exports/*.md,
+and each platform's exports/*/SETUP.md) for inline links and images. The
+generated exports/*/knowledge/*.md copies are skipped on purpose — they're
+byte-identical to references/*.md and already validated at their source
+location. External links (http/https), mailto: links, and same-page anchors
+(#...) are skipped; everything else is resolved relative to the file that
+contains it. Fenced code blocks and inline code spans are ignored so example
+snippets never false-positive.
 
 Exits 1 with a file:line list of broken links, 0 when everything resolves.
 Offline-only on purpose — nothing here can flake in CI.
@@ -28,7 +32,8 @@ SCAN_PATTERNS = [
     "docs/*.md",
     os.path.join("skills", "**", "*.md"),
     os.path.join("tests", "**", "*.md"),
-    os.path.join("exports", "**", "*.md"),
+    os.path.join("exports", "*.md"),
+    os.path.join("exports", "*", "*.md"),
 ]
 
 # [text](target) or ![alt](target), with an optional "title" after the target.

@@ -128,7 +128,7 @@ There are three install doors, each hitting the same skill through a different d
 2. **Copy the folder** — `cp -r skills/voicestead ~/.claude/skills/`.
 3. **Upload to claude.ai** — `python3 -m scripts.package_skill voicestead` builds the `.skill`; upload it under Customize → Skills.
 
-The plugin manifests validate against `claude plugin validate`. The project is at version 0.9.0, pre-launch; v1.0.0 is the launch target once the S0 eval and the S8 regression pass. It's MIT-licensed, owned by Green Pioneer Solutions.
+The plugin manifests validate against `claude plugin validate`. The project is at version 0.10.0, pre-launch; v1.0.0 is the launch target once the S0 eval and the S8 regression pass. It's MIT-licensed, owned by Green Pioneer Solutions.
 
 ## The evidence base
 

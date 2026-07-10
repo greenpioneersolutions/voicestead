@@ -43,7 +43,7 @@ The pre-launch packaging release: the skill got a real home, a real installer, a
 - **Docs.** Consolidated the throwaway per-phase plan docs into four durable docs — `docs/ARCHITECTURE.md`, `docs/USING.md`, `docs/LAUNCH.md`, `docs/BETA.md`. Removed `PLAYBOOK.md` (folded into `LAUNCH.md`) and the internal `PROMPTS.md`.
 
 ### Toward 1.0.0
-**v1.0.0 is the launch target**, and it is gated — plainly — on two things: **S0**, the real-writing eval producing a win-rate scorecard worth publishing (target ≥70%, zero hard-gate failures), and **S8**, a full regression pass with no previously-shipping golden case broken. Until both are green, this stays 0.9.0.
+**v1.0.0 is the launch target**, and it is gated — plainly — on two things: **S0**, the real-writing eval producing a win-rate scorecard worth publishing (target ≥70%, zero hard-gate failures), and **S8**, a full regression pass with no previously-shipping golden case broken. Until both are green, the project stays pre-1.0 — 0.10.0 adds the multi-platform distribution surface but does not change that launch gate.
 
 ## [v9] — 2026-07
 ### Added

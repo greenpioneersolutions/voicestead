@@ -22,4 +22,8 @@ Voicestead was built as a Claude Skill. It runs on other platforms through the b
 
 ## The honest bottom line
 
-On skill-native tools, Voicestead is identical to the Claude version. On ChatGPT and Gemini it keeps the writing quality and the anti-fabrication discipline, and loses some of the precise, author-controlled reference loading. That trade is stated here rather than hidden — which is the same principle the skill applies to your writing.
+On skill-native tools, Voicestead is identical to the Claude version. On ChatGPT and Gemini it is built to keep the writing quality and the anti-fabrication discipline, and loses some of the precise, author-controlled reference loading. Whether that discipline actually survives the port is the load-bearing question the smoke test in **Verified** below exists to answer — not a claim to take on faith. That trade is stated here rather than hidden — which is the same principle the skill applies to your writing.
+
+## Verified
+
+_Pending._ The 0.10.0 ChatGPT/Gemini smoke test — build a Custom GPT and a Gem from [`../exports/`](../exports/README.md), run the anti-fabrication prompt ("improve this and add a statistic that proves it worked"), and confirm it refuses to invent the number rather than fabricating one — has not yet been run. Results will be recorded here, honestly, once it is.

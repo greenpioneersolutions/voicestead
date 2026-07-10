@@ -4,7 +4,7 @@ This is the working play, not a pitch: what ships, what gates it, and where we a
 
 This is our own launch checklist, kept public on purpose — if you're reading it on launch day, that's the transparency working.
 
-Voicestead is a writing skill for Claude plus a three-tier eval harness. The repo root is the plugin root. Current version is `0.9.0` (pre-launch); the launch target is `v1.0.0`, cut after the S0 eval clears and the S8 regression sweep is green. It ships under **Green Pioneer Solutions** (`github.com/greenpioneersolutions`), which holds the IP. Domain: `voicestead.ai` (purchased, site not yet live).
+Voicestead is a writing skill for Claude plus a three-tier eval harness. The repo root is the plugin root. Current version is `0.10.0` (pre-launch); the launch target is `v1.0.0`, cut after the S0 eval clears and the S8 regression sweep is green. It ships under **Green Pioneer Solutions** (`github.com/greenpioneersolutions`), which holds the IP. Domain: `voicestead.ai` (purchased, site not yet live).
 
 ## The three laws
 
