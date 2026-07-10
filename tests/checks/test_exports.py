@@ -166,3 +166,23 @@ def test_check_detects_a_stale_derived_file(tmp_path, monkeypatch):
     stale = dst / "chatgpt" / "instructions.txt"
     stale.write_text("tampered", encoding="utf-8")
     assert bx.check() == 1
+
+
+def test_write_all_removes_orphan_knowledge_files(tmp_path, monkeypatch):
+    import shutil
+    dst = tmp_path / "exports"
+    shutil.copytree(bx.EXPORTS, dst)
+    monkeypatch.setattr(bx, "EXPORTS", str(dst))
+    monkeypatch.setattr(bx, "CORE", str(dst / "core.md"))
+    orphan = dst / "chatgpt" / "knowledge" / "zzz-orphan.md"
+    orphan.write_text("stale", encoding="utf-8")
+    assert bx.check() == 1          # orphan detected
+    assert bx.write_all() == 0      # regenerate reconciles
+    assert not orphan.exists()      # orphan removed
+    assert bx.check() == 0          # clean again
+
+
+def test_write_all_refuses_on_validation_error(monkeypatch):
+    monkeypatch.setattr(bx, "build_derived",
+                        lambda: {"chatgpt/instructions.txt": "x" * (bx.CHATGPT_CHAR_LIMIT + 1)})
+    assert bx.write_all() == 1      # blocked before any write

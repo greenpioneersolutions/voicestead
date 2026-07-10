@@ -159,10 +159,27 @@ def write_all():
         os.makedirs(os.path.dirname(dest), exist_ok=True)
         with open(dest, "w", encoding="utf-8") as fh:
             fh.write(content)
+
+    # Reconcile: remove orphan knowledge files no longer produced (e.g. a
+    # deleted or renamed reference) so a regenerate fully matches build_derived().
+    removed = 0
+    for sub in _managed_knowledge_dirs():
+        d = os.path.join(EXPORTS, sub)
+        if os.path.isdir(d):
+            for f in sorted(os.listdir(d)):
+                rel = "%s/%s" % (sub, f)
+                if rel not in derived:
+                    os.remove(os.path.join(d, f))
+                    removed += 1
+
+    removed_note = ", removed %d orphan(s)" % removed if removed else ""
     if parse_seal(read_core()) != skill_hash():
-        print("wrote %d derived files. WARNING: core.md seal is stale — run --reseal" % len(derived))
+        print(
+            "wrote %d derived files%s. WARNING: core.md seal is stale — run --reseal"
+            % (len(derived), removed_note)
+        )
     else:
-        print("wrote %d derived files (seal ok)" % len(derived))
+        print("wrote %d derived files (seal ok)%s" % (len(derived), removed_note))
     return 0
 
 
