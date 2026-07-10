@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Fail-safe for launch: find leftover REPLACE_ME_* placeholders before the repo goes public.
 
-Pre-launch, real values (the GitHub owner, the Studio MCP URLs) are not decided yet, so
-placeholders are expected. This runs in REPORT mode by default (exit 0, lists what it finds).
+Pre-launch, some real values are still pending: the GitHub owner is now `greenpioneersolutions`
+and the Studio API/MCP host is `api.voicestead.ai`, but the exact staging/prod endpoint paths
+under it aren't wired yet, so placeholders are still expected. This runs in REPORT mode by
+default (exit 0, lists what it finds).
 At S6 / launch, once the real URLs land, flip CI to ``--strict`` so any leftover placeholder
 fails the build -- that turns the S6 URL sweep into a mechanical find-and-replace with a net.
 

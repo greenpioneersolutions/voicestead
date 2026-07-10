@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" role="img" aria-label="Voicestead — writing that sounds like you">
+  <title>Voicestead</title>
+  <defs>
+    <radialGradient id="glow" cx="22%" cy="24%" r="80%">
+      <stop offset="0" stop-color="#16385A"/>
+      <stop offset="1" stop-color="#0F2437"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+
+  <!-- decorative voice-line -->
+  <g fill="none" stroke="#2A92D4" stroke-linecap="round">
+    <path d="M-20 548 C 120 500 240 500 360 548 S 600 596 720 548 S 960 500 1080 548 S 1260 590 1340 548" stroke-width="5" opacity="0.16"/>
+    <path d="M-20 566 C 140 528 260 528 380 566 S 620 604 740 566 S 980 528 1100 566 S 1280 600 1360 566" stroke-width="4" opacity="0.10"/>
+  </g>
+
+  <!-- eyebrow -->
+  <text x="102" y="150" font-family="'IBM Plex Mono', ui-monospace, monospace" font-size="22" letter-spacing="4" fill="#6E86A0">OPEN-SOURCE CLAUDE WRITING SKILL</text>
+
+  <!-- mark -->
+  <g transform="translate(100 178) scale(1.18)">
+    <mask id="og">
+      <rect x="0" y="0" width="120" height="120" fill="#000"/>
+      <path d="M48 22 Q60 17 72 22 Q68 41 60 55 Q52 41 48 22 Z" fill="#fff"/>
+      <circle cx="60" cy="33" r="4.6" fill="#000"/>
+      <path d="M60 38 L60 51" stroke="#000" stroke-width="2.4" stroke-linecap="round"/>
+    </mask>
+    <rect x="0" y="0" width="120" height="120" fill="#DCE6EF" mask="url(#og)"/>
+    <line x1="22" y1="70" x2="98" y2="70" stroke="#6E86A0" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+    <g stroke="#46A6E6" stroke-width="4.4" stroke-linecap="round">
+      <line x1="30" y1="64" x2="30" y2="76"/><line x1="39" y1="59" x2="39" y2="81"/>
+      <line x1="48" y1="52" x2="48" y2="88"/><line x1="60" y1="61" x2="60" y2="79"/>
+      <line x1="72" y1="52" x2="72" y2="88"/><line x1="81" y1="59" x2="81" y2="81"/>
+      <line x1="90" y1="64" x2="90" y2="76"/>
+    </g>
+  </g>
+
+  <!-- wordmark -->
+  <text x="262" y="282" font-family="'Fraunces', Georgia, serif" font-weight="560" font-size="104" letter-spacing="-2" fill="#ECF2F8">Voicestead</text>
+
+  <!-- tagline -->
+  <text x="106" y="392" font-family="'Inter', -apple-system, sans-serif" font-weight="400" font-size="35" fill="#A7BCCE">Writing that sounds like you — and never invents a fact.</text>
+
+  <!-- modes -->
+  <text x="106" y="446" font-family="'IBM Plex Mono', ui-monospace, monospace" font-size="20" letter-spacing="3" fill="#4E7CA0">DRAFT&#160;&#160;·&#160;&#160;IMPROVE&#160;&#160;·&#160;&#160;REVIEW&#160;&#160;·&#160;&#160;EXTRACT</text>
+</svg>

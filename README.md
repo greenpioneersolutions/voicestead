@@ -1,14 +1,25 @@
-# Voicestead
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="brand/voicestead-lockup-reversed.svg">
+    <img src="brand/voicestead-lockup.svg" alt="Voicestead" width="380">
+  </picture>
+</p>
 
-**Writing that sounds like you and never invents a fact — with an eval harness built to prove it.**
+<p align="center"><strong>Stop sounding like AI. Start sounding like your voice.</strong></p>
 
-A writing skill for [Claude](https://claude.com/claude-code), plus the eval harness that keeps it honest.
+<p align="center">Voicestead teaches the <a href="https://claude.com/claude-code">Claude</a> you already use to write the way you do — and to ask for a real fact instead of inventing one. Paste in a rough draft, get back something you'd actually hit send on.</p>
+
+<p align="center">A writing skill plus the eval harness that keeps it honest — so the promise is measured, not asserted.</p>
+
+<p align="center"><em>No account · No credit card · Open source (MIT) · Works with your Claude subscription</em></p>
+
+<p align="center"><a href="#install"><strong>Install free — 2-minute setup</strong></a>&nbsp; · &nbsp;<a href="https://voicestead.ai">voicestead.ai</a> <em>(coming soon)</em></p>
 
 ---
 
 ## See it first
 
-Paste in something that reeks of AI. Here is what comes back.
+Paste in something that reeks of AI. Here's what comes back — a real pass, not a word-swap.
 
 **Before**
 
@@ -34,7 +45,7 @@ Underneath sit three mental models — name the one job, point first, say it to 
 
 ## Install
 
-Three doors. Pick the one that matches how you use Claude.
+**Two minutes. Three doors. Zero cost.** Pick the one that matches how you use Claude — copy, paste, done, and your next draft comes out sounding like a person.
 
 **Door 1 — Claude Code plugin.** One command, and you get updates when the version bumps.
 
@@ -94,6 +105,23 @@ The lean core ships the same for everyone. What makes it *yours* is two files yo
 
 ---
 
+## When you want more — Voicestead Studio
+
+**The skill sounds like you today. Studio remembers you tomorrow.**
+
+The free skill sounds like you as long as you keep feeding it your voice files by hand. Studio does the remembering for you: a secure, private memory behind your Claude that keeps your voice profile current, saves the lines that actually worked, and hands your Claude the right ones at the right moment.
+
+- **Remembers your voice.** One living profile, versioned like code. Every session, on every surface, your Claude starts already knowing you — you never explain yourself twice.
+- **Learns what worked.** Tell it what you shipped and what landed. It keeps score and leans into the moves that win.
+- **Retrieves the right you.** An email to an exec isn't a post to strangers. Studio pulls your best past lines for this exact moment and hands them to your Claude as reference.
+- **Keeps receipts.** Every draft is scored — does it sound like you, are the tells creeping back, are the numbers real. Proof, not vibes.
+
+Studio never writes a word — your own Claude does that, on your own subscription. Your writing stays encrypted, walled off, never trained on, and deletable for real. Same honesty rule as the skill: it returns your real, stored words and never fabricates a memory. The skill is the tool; Studio is the memory.
+
+Studio will be paid at launch. **The beta is free**, and the skill stays free either way. Join the list at **[voicestead.ai](https://voicestead.ai)** *(coming soon)*, or read what it adds in [`docs/BETA.md`](docs/BETA.md).
+
+---
+
 ## FAQ
 
 **Does it actually sound like me?**
@@ -110,6 +138,16 @@ A three-tier harness: free deterministic checks on every push, an LLM judge on d
 
 **Is my voice profile shared with anyone?**
 No. It's a local file on your machine (Claude Code) or a document in your own Project (claude.ai). It never leaves your control, and contributions to the project deliberately stay on the shared surfaces — format packs, eval cases, tell-lists — never personal voice files.
+
+---
+
+## Your next draft could sound like you
+
+Two minutes from now, it can. That's the whole pitch.
+
+<p align="center"><a href="#install"><strong>Install Voicestead free</strong></a>&nbsp; · &nbsp;<a href="https://github.com/greenpioneersolutions/voicestead">Star it on GitHub</a>&nbsp; · &nbsp;<a href="https://voicestead.ai">voicestead.ai</a> <em>(coming soon)</em></p>
+
+<p align="center"><em>Free forever · no account · no credit card.</em></p>
 
 ---
 
@@ -142,6 +180,7 @@ tests/                the three-tier eval harness (dev-only, never shipped)
 .claude-plugin/       plugin.json + marketplace.json (Door 1)
 scripts/              package_skill.py, check_placeholders.py
 docs/                 ARCHITECTURE, USING, LAUNCH, BETA
+brand/                logo, favicon, OG card, color + type tokens (dev-only, never shipped)
 .github/workflows/    CI: check (free) on every push, evaluate + golden on dispatch
 ```
 

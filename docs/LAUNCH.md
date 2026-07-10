@@ -50,7 +50,7 @@ The build spine from gate to launch to forever. This session shipped everything 
 | **S3** | Golden set + regression freeze | scaffolded | S0's real verdicts to freeze |
 | **S4** | Distribution (three doors) | validate-green | live door-1 install (needs public repo) |
 | **S5** | Studio integration | plan-only | Studio P7 green (in development, not shipped) |
-| **S6** | Connector wiring + URL sweep | plan-only | real staging/prod Studio URLs, live `voicestead.ai` |
+| **S6** | Connector wiring + URL sweep | plan-only | staging/prod endpoints under `api.voicestead.ai`, live `voicestead.ai` |
 | **S7** | Instruction-voice experiment | scaffolded | S0 (research only) |
 | **S8** | Full regression sweep | plan-only | S3 + S5; runs before any launch piece merges |
 | **S9** | Landing page (`voicestead.ai`) | plan-only | S0 numbers, S6 URLs |
@@ -58,11 +58,11 @@ The build spine from gate to launch to forever. This session shipped everything 
 | **S11** | Submissions & listings | plan-only | S8 green, public repo, S10 copy |
 | **S12** | Post-launch care | plan-only | S11 (then recurring forever) |
 
-Shipped this session: the plugin restructure (skill under `skills/voicestead/`, manifests at root, harness isolated under `tests/`); S4 packaging validated across all three doors; S2 onboarding with honest both-surface storage and three new cases; the S1 description sharpened; S0/S3 golden scaffolding awaiting real inputs; the `scripts/check_placeholders.py` guard (owner resolved to `greenpioneersolutions`; the placeholder sweep is clean; Studio URLs will be added (and sentinel-guarded) at S6); the S7 dry-run; one Track-A influence card (target: ten for launch); and CI — a free `check` job on every push, plus `golden` (the S0 benchmark), `release.yml`, and `pr-eval.yml`.
+Shipped this session: the plugin restructure (skill under `skills/voicestead/`, manifests at root, harness isolated under `tests/`); S4 packaging validated across all three doors; S2 onboarding with honest both-surface storage and three new cases; the S1 description sharpened; S0/S3 golden scaffolding awaiting real inputs; the `scripts/check_placeholders.py` guard (owner resolved to `greenpioneersolutions`; the placeholder sweep is clean; the Studio API/MCP host is set to `api.voicestead.ai`, and the exact staging/prod endpoints under it are added (and sentinel-guarded) at S6); the S7 dry-run; one Track-A influence card (target: ten for launch); and CI — a free `check` job on every push, plus `golden` (the S0 benchmark), `release.yml`, and `pr-eval.yml`.
 
-Five rules hold the spine together. **S0 gates all** — the blind win-rate gate comes first, everything waits on it. **S5 never before Studio P7** — a session with no connector must stay byte-identical to pre-S5. **S6 waits for real URLs** — no invented Studio MCP URLs; `voicestead.ai` is usable in copy but not live. **S8 before launch** — the full suite (all cases, golden, corpus) green with the changelog written, before any launch asset merges. **S12 is forever** — every accepted bug becomes an eval case before the fix; every major model release re-runs the sweep and reports drift.
+Five rules hold the spine together. **S0 gates all** — the blind win-rate gate comes first, everything waits on it. **S5 never before Studio P7** — a session with no connector must stay byte-identical to pre-S5. **S6 waits for real URLs** — the Studio API/MCP host is `api.voicestead.ai`, but no invented endpoint paths under it until they're wired; `voicestead.ai` is usable in copy but not live. **S8 before launch** — the full suite (all cases, golden, corpus) green with the changelog written, before any launch asset merges. **S12 is forever** — every accepted bug becomes an eval case before the fix; every major model release re-runs the sweep and reports drift.
 
-Studio, for the record, is a future connector that adds persistent voice memory across sessions — tools like `get_writer_context`, `log_draft`, `score_draft`, `import_pieces`. It is in development. Not shipped, beta not open. Nothing in the launch depends on it, and no copy claims a ship date.
+Studio, for the record, is a future connector — an API and MCP server at `api.voicestead.ai` — that adds persistent voice memory across sessions, with tools like `get_writer_context`, `log_draft`, `score_draft`, `import_pieces`. It is in development. Not shipped, beta not open. Nothing in the launch depends on it, and no copy claims a ship date.
 
 ## The channel sequence
 
@@ -79,7 +79,7 @@ First 72 hours, founder mode: answer every issue and comment fast, ship a small 
 
 An evidence checklist — every row carries a link or a dated status, no blank cells. Being indexable is most of the job: standard layout, clear description, topics set, and the crawlers find you.
 
-- [ ] Confirm the placeholder sweep is green (`scripts/check_placeholders.py`) — owner resolved to `greenpioneersolutions`; the Studio MCP URLs land at S6.
+- [ ] Confirm the placeholder sweep is green (`scripts/check_placeholders.py`) — owner resolved to `greenpioneersolutions`; the Studio MCP endpoints (under `api.voicestead.ai`) land at S6.
 - [ ] Bump `plugin.json` to `1.0.0` (from S8) and confirm `claude plugin validate` passes.
 - [ ] Build the release asset: `python3 -m scripts.package_skill voicestead` → `voicestead.skill`.
 - [ ] Tag `v1.0.0`, cut a GitHub Release with `voicestead.skill` attached, paste the CHANGELOG entry and the scorecard link into the notes.

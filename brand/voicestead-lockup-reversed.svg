@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 130" width="540" height="130" role="img" aria-label="Voicestead">
+  <title>Voicestead</title>
+  <g transform="translate(2 8) scale(0.95)">
+    <mask id="lkr">
+      <rect x="0" y="0" width="120" height="120" fill="#000"/>
+      <path d="M48 22 Q60 17 72 22 Q68 41 60 55 Q52 41 48 22 Z" fill="#fff"/>
+      <circle cx="60" cy="33" r="4.6" fill="#000"/>
+      <path d="M60 38 L60 51" stroke="#000" stroke-width="2.4" stroke-linecap="round"/>
+    </mask>
+    <rect x="0" y="0" width="120" height="120" fill="#DCE6EF" mask="url(#lkr)"/>
+    <line x1="22" y1="70" x2="98" y2="70" stroke="#6E86A0" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+    <g stroke="#46A6E6" stroke-width="4.4" stroke-linecap="round">
+      <line x1="30" y1="64" x2="30" y2="76"/><line x1="39" y1="59" x2="39" y2="81"/>
+      <line x1="48" y1="52" x2="48" y2="88"/><line x1="60" y1="61" x2="60" y2="79"/>
+      <line x1="72" y1="52" x2="72" y2="88"/><line x1="81" y1="59" x2="81" y2="81"/>
+      <line x1="90" y1="64" x2="90" y2="76"/>
+    </g>
+  </g>
+  <text x="132" y="86" font-family="'Fraunces', Georgia, 'Times New Roman', serif" font-weight="560" font-size="66" letter-spacing="-1" fill="#ECF2F8">Voicestead</text>
+</svg>

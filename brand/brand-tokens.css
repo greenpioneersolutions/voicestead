@@ -1,0 +1,47 @@
+/* ============================================================
+   VOICESTEAD — Brand Tokens  ("The Resonant")
+   Import or paste into your stylesheet.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,560;1,9..144,460&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+:root{
+  /* ---- Core palette ---- */
+  --ink-pen:      #1C4066;  /* primary brand color · the pen · headings/text on light */
+  --deep-ink:     #14324F;  /* darker shade for large display type / depth           */
+  --voice-azure:  #2A92D4;  /* accent · the waveform · links, primary action, focus  */
+  --azure-bright: #46A6E6;  /* accent on dark surfaces                               */
+  --steel:        #7C93A8;  /* muted / secondary text · hairlines on light           */
+  --mist:         #EAF1F7;  /* tinted surface · cards, soft sections                 */
+  --cloud:        #F4F8FB;  /* alternate light page background                       */
+  --ink-night:    #0F2437;  /* dark sections / footer background                     */
+  --ice:          #DCE6EF;  /* text / logo on dark                                   */
+  --white:        #FFFFFF;
+
+  /* ---- Signature gradient · "ink becomes voice" (use sparingly) ---- */
+  --grad-voice: linear-gradient(90deg, #1C4066 0%, #2A92D4 100%);
+
+  /* ---- Type ---- */
+  --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;         /* headings, hero, logo wordmark */
+  --font-body:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; /* body, UI */
+  --font-mono:    'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;         /* eyebrows, labels, code */
+
+  /* ---- Focus ring (accessibility) ---- */
+  --focus: 0 0 0 3px rgba(42,146,212,.45);
+}
+
+/* ---- Helpers ---- */
+.eyebrow{ font-family:var(--font-mono); text-transform:uppercase; letter-spacing:.14em; font-size:.78rem; color:var(--steel); }
+.h-display{ font-family:var(--font-display); font-weight:560; letter-spacing:-.02em; color:var(--ink-pen); line-height:1.05; }
+.text-voice{ color:var(--voice-azure); }
+.btn-primary{
+  font-family:var(--font-body); font-weight:600; color:#fff;
+  background:var(--grad-voice); border:0; border-radius:10px;
+  padding:.85em 1.3em; cursor:pointer;
+}
+.btn-primary:focus-visible{ outline:none; box-shadow:var(--focus); }
+:focus-visible{ outline:none; box-shadow:var(--focus); }
+
+@media (prefers-reduced-motion: reduce){
+  *{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; }
+}
