@@ -60,3 +60,25 @@ def test_reference_files_returns_ten_sorted_md_files():
     assert len(names) == 10
     assert all(n.endswith(".md") for n in names)
     assert "tells.md" in names
+
+
+def test_core_exists_and_is_sealed_to_current_skill():
+    core = bx.read_core()
+    assert bx.parse_seal(core) == bx.skill_hash(), (
+        "core.md seal is stale — re-condense core.md then run "
+        "`python -m scripts.build_exports --reseal`"
+    )
+
+
+def test_core_body_within_chatgpt_char_budget():
+    body = bx.strip_seal(bx.read_core())
+    assert len(body) <= bx.CHATGPT_CHAR_LIMIT, "core.md body is %d chars (limit %d)" % (
+        len(body), bx.CHATGPT_CHAR_LIMIT
+    )
+
+
+def test_core_names_every_reference():
+    body = bx.strip_seal(bx.read_core())
+    assert "Reference library" in body
+    for name, _ in bx.reference_files():
+        assert name in body, "core.md never mentions reference %s" % name

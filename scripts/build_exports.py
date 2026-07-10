@@ -88,8 +88,15 @@ def main(argv=None):
     ap.add_argument("--check", action="store_true", help="verify committed exports are fresh")
     ap.add_argument("--reseal", action="store_true", help="stamp core.md with SKILL.md's current hash")
     args = ap.parse_args(argv)
-    # builders wired in Task 6
-    print("build_exports: scaffold only (builders wired in later tasks)")
+
+    if args.reseal:
+        sealed = reseal(read_core(), skill_hash())
+        with open(CORE, "w", encoding="utf-8") as fh:
+            fh.write(sealed)
+        print("resealed core.md -> %s" % skill_hash())
+        return 0
+
+    print("build_exports: scaffold only (builders wired in Task 6)")
     return 0
 
 
