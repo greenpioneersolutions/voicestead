@@ -4,6 +4,19 @@ All notable changes to Voicestead are recorded here. The format follows [Keep a 
 
 Versions v5 through v9 predate semver — they were the skill's internal revisions, promoted here from the eval guide's change log. Plugin packaging began at 0.9.0.
 
+## [0.10.0] — Unreleased
+
+### Added
+- **Multi-platform distribution.** Paste-ready bundles under `exports/` bring Voicestead to ChatGPT (Custom GPT + Project), Gemini (Gem), and AGENTS.md tools (Codex, Copilot, Cursor, Zed, Amp), plus a documented `.agents/skills/` door for skill-native coding tools.
+- `scripts/build_exports.py` generates the bundles from the single canonical `SKILL.md` via a hand-authored, SHA-256-sealed `exports/core.md`.
+- `docs/PLATFORMS.md` documents what each surface keeps and loses.
+
+### Changed
+- README install section reorganized into per-platform doors with a capability matrix.
+
+### CI
+- Every push and PR verifies exports are fresh, sealed to `SKILL.md`, and within the 8,000-char ChatGPT and 10-file Gemini limits.
+
 ## [0.9.0] — Unreleased
 
 The pre-launch packaging release: the skill got a real home, a real installer, and a real regression net. No behavior claims are published yet — the blind win-rate scorecard is **pending S0** (the real-writing eval hasn't been run this cycle; no invented number goes here).
