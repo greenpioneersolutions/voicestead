@@ -131,3 +131,18 @@ def test_validate_flags_too_many_gemini_files():
     fake["chatgpt/instructions.txt"] = "ok"
     errors = bx.validate(fake)
     assert any("Gemini" in e or "10" in e for e in errors)
+
+
+def test_agents_md_contains_core_body_and_reference_links():
+    derived = bx.build_derived()
+    agents = derived["agents/AGENTS.md"]
+    body = bx.strip_seal(bx.read_core())
+    assert body.rstrip() in agents
+    for name, _ in bx.reference_files():
+        assert "%s/skills/voicestead/references/%s" % (bx.RAW_BASE, name) in agents
+
+
+def test_agents_footer_lists_every_reference_once():
+    footer = bx._agents_footer(bx.reference_files())
+    for name, _ in bx.reference_files():
+        assert footer.count("/references/%s" % name) == 1

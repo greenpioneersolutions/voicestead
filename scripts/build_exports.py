@@ -78,6 +78,20 @@ def reference_files():
     ]
 
 
+def _agents_footer(refs):
+    """A repo-link list of the references, for tools that can't upload knowledge."""
+    lines = [
+        "## Reference library (full text in the repo)",
+        "",
+        "This flat file is always loaded. The full references load on demand only on "
+        "Skill-native tools; here, open the one a job calls for:",
+        "",
+    ]
+    for name, _ in refs:
+        lines.append("- **%s** — %s/skills/voicestead/references/%s" % (name[:-3], RAW_BASE, name))
+    return "\n".join(lines) + "\n"
+
+
 def _read_text(path):
     with open(path, encoding="utf-8") as fh:
         return fh.read()
@@ -102,6 +116,9 @@ def build_derived():
     derived["gemini/instructions.txt"] = instructions
     for name, path in refs:
         derived["gemini/knowledge/%s" % name] = _read_text(path)
+
+    # AGENTS.md — one flat file; references become repo links (no knowledge upload here)
+    derived["agents/AGENTS.md"] = instructions.rstrip() + "\n\n" + _agents_footer(refs)
 
     return derived
 
