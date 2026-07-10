@@ -98,6 +98,11 @@ def build_derived():
     for name, path in refs:
         derived["chatgpt/knowledge/%s" % name] = _read_text(path)
 
+    # Gemini
+    derived["gemini/instructions.txt"] = instructions
+    for name, path in refs:
+        derived["gemini/knowledge/%s" % name] = _read_text(path)
+
     return derived
 
 
@@ -109,6 +114,12 @@ def validate(derived):
         errors.append(
             "chatgpt/instructions.txt is %d chars, over the %d limit — tighten core.md"
             % (len(instr), CHATGPT_CHAR_LIMIT)
+        )
+    gemini_files = [k for k in derived if k.startswith("gemini/knowledge/")]
+    if len(gemini_files) > GEMINI_KNOWLEDGE_LIMIT:
+        errors.append(
+            "Gemini knowledge has %d files, over the %d-file Gem cap — merge references"
+            % (len(gemini_files), GEMINI_KNOWLEDGE_LIMIT)
         )
     return errors
 

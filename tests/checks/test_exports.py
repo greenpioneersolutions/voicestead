@@ -111,3 +111,23 @@ def test_validate_flags_oversize_instructions():
 
 def test_validate_clean_on_real_build():
     assert bx.validate(bx.build_derived()) == []
+
+
+def test_build_derived_includes_gemini_instructions_and_knowledge():
+    derived = bx.build_derived()
+    assert "gemini/instructions.txt" in derived
+    for name, _ in bx.reference_files():
+        assert "gemini/knowledge/%s" % name in derived
+
+
+def test_gemini_knowledge_within_ten_file_cap():
+    derived = bx.build_derived()
+    gemini_knowledge = [k for k in derived if k.startswith("gemini/knowledge/")]
+    assert len(gemini_knowledge) <= bx.GEMINI_KNOWLEDGE_LIMIT
+
+
+def test_validate_flags_too_many_gemini_files():
+    fake = {"gemini/knowledge/r%02d.md" % i: "x" for i in range(bx.GEMINI_KNOWLEDGE_LIMIT + 1)}
+    fake["chatgpt/instructions.txt"] = "ok"
+    errors = bx.validate(fake)
+    assert any("Gemini" in e or "10" in e for e in errors)
