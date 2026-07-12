@@ -4,7 +4,13 @@
 
 ## Install
 
-Copy `AGENTS.md` to your project root (or merge it into an existing one — the nearest `AGENTS.md` to a file wins):
+One command, straight into your repo (needs the repo public on GitHub):
+
+```bash
+curl -o AGENTS.md https://raw.githubusercontent.com/greenpioneersolutions/voicestead/main/exports/agents/AGENTS.md
+```
+
+Or, from a local checkout, copy it (the nearest `AGENTS.md` to a file wins, so this merges into a monorepo cleanly):
 
 ```bash
 cp AGENTS.md /path/to/your/project/AGENTS.md

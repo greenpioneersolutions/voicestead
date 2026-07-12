@@ -4,11 +4,13 @@ Voicestead is a Claude Skill. These folders let it run elsewhere. Each bundle is
 
 | Platform | Folder | Install |
 |---|---|---|
-| **ChatGPT** (Custom GPT or Project) | [`chatgpt/`](chatgpt/SETUP.md) | Paste `instructions.txt`, upload `knowledge/` |
-| **Gemini** (Gem) | [`gemini/`](gemini/SETUP.md) | Paste `instructions.txt`, upload `knowledge/` |
-| **AGENTS.md tools** (Codex, Copilot, Cursor, Zed, Amp) | [`agents/`](agents/SETUP.md) | Copy `AGENTS.md` to your repo root |
+| **ChatGPT** (Custom GPT or Project) | [`chatgpt/`](chatgpt/SETUP.md) | Paste `instructions.txt`, upload the single `knowledge-bundle.md` |
+| **Gemini** (Gem) | [`gemini/`](gemini/SETUP.md) | Paste `instructions.txt`, upload the single `knowledge-bundle.md` |
+| **AGENTS.md tools** (Codex, Copilot, Cursor, Zed, Amp) | [`agents/`](agents/SETUP.md) | One `curl` into your repo root |
 | **Skill-native tools** (Cursor, Codex, Copilot, Gemini CLI, Windsurf) | — | Copy `../skills/voicestead/` into `.agents/skills/` |
 | **Claude Code / claude.ai** | — | See the [main README](../README.md) (plugin, folder copy, or `.skill`) |
+
+**One-click on ChatGPT/Gemini** (click a link, nothing to paste) needs a hosted GPT/Gem published once from a Voicestead account — see [`../docs/PUBLISHING.md`](../docs/PUBLISHING.md). Each `knowledge-bundle.md` is the ten references in one file; the split `knowledge/` folder is still there if your platform retrieves better over separate documents.
 
 ## What each surface keeps
 

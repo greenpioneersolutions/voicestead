@@ -7,7 +7,7 @@ A **Gem** is Gemini's reusable custom assistant — an instructions field plus k
 1. In the Gemini app, open **Gem manager → New Gem** (Gems require an eligible Google account).
 2. **Name** it `Voicestead`.
 3. Open `instructions.txt` from this folder, copy all of it, and paste it into the **Instructions** field.
-4. Under **Knowledge**, upload every file in the `knowledge/` folder (10 files — exactly at the Gem limit).
+4. Under **Knowledge**, upload the single `knowledge-bundle.md` — **one file**, so you never touch the 10-file Gem limit. (Prefer separate documents? Upload the ten files in `knowledge/` instead — that's exactly at the cap.)
 5. **Save.** To share, use the share control (email or link) — sharing works when the knowledge is uploaded files or Drive files.
 
 ## Make it yours

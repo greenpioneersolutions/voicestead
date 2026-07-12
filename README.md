@@ -45,22 +45,29 @@ Underneath sit three mental models — name the one job, point first, say it to 
 
 ## Install
 
-Voicestead is a Claude Skill, and it now runs well beyond Claude. Pick your platform — copy, paste, done, and your next draft comes out sounding like a person.
+Find your platform, do the one thing in the **Install** column. That's it.
+
+| Platform | Install | Account | ~Time |
+|---|---|---|---|
+| **Claude Code** | one `/plugin` command | Claude | 1 min |
+| **claude.ai** (Projects, desktop) | upload the `.skill` | Claude | 2 min |
+| **ChatGPT** (Custom GPT / Project) | paste 1 box · upload **1** file | ChatGPT | 3 min |
+| **Gemini** (Gem) | paste 1 box · upload **1** file | Google | 3 min |
+| **Codex · Cursor · Copilot · Zed** (`AGENTS.md`) | one `curl` command | — | 30 sec |
+| **Cursor · Codex · Copilot · CLIs** (native skill) | one `git` command | — | 30 sec |
+
+> **Want true one-click on ChatGPT & Gemini** — click a link, start typing, nothing to paste or upload? That version is *hosted*, so it has to be published once from a Voicestead account. The 5-minute how-to is in [`docs/PUBLISHING.md`](docs/PUBLISHING.md); once it's live this table gets two "▶ Open" links. Until then, the 3-minute build below is the way.
 
 ### Claude Code
 
-**Plugin** — one command, and you get updates when the version bumps:
+Plugin (auto-updates when the version bumps):
 
 ```
 /plugin marketplace add greenpioneersolutions/voicestead
 /plugin install voicestead@voicestead
 ```
 
-**Folder copy** — no marketplace:
-
-```bash
-cp -r skills/voicestead ~/.claude/skills/
-```
+Or copy the folder, no marketplace: `cp -r skills/voicestead ~/.claude/skills/`
 
 ### claude.ai (Projects, desktop)
 
@@ -70,21 +77,54 @@ python3 -m scripts.package_skill voicestead   # builds voicestead.skill
 
 Upload `voicestead.skill` under Customize → Skills.
 
-### ChatGPT, Gemini, and AGENTS.md tools
+### ChatGPT — Custom GPT or Project
 
-Paste-ready bundles live in [`exports/`](exports/README.md):
+<details>
+<summary><strong>3-minute build</strong> (until the hosted one-click lands)</summary>
 
-- **ChatGPT** (Custom GPT or Project) — [`exports/chatgpt/`](exports/chatgpt/SETUP.md)
-- **Gemini** (Gem) — [`exports/gemini/`](exports/gemini/SETUP.md)
-- **AGENTS.md** (Codex, Copilot, Cursor, Zed, Amp) — [`exports/agents/`](exports/agents/SETUP.md)
+1. ChatGPT → **Explore GPTs → Create → Configure**. Name it `Voicestead`.
+2. **Instructions:** open [`exports/chatgpt/instructions.txt`](exports/chatgpt/instructions.txt) (the raw view has a **Copy** button), and paste it into the Instructions box.
+3. **Knowledge:** upload the single [`exports/chatgpt/knowledge-bundle.md`](exports/chatgpt/knowledge-bundle.md) — **one file, not ten**. (Want finer retrieval? Upload the ten files in [`exports/chatgpt/knowledge/`](exports/chatgpt/knowledge) instead.)
+4. Paste the four lines from [`conversation-starters.txt`](exports/chatgpt/conversation-starters.txt) → **Create**.
 
-### Skill-native coding tools
+Full walkthrough and the lighter Project option: [`exports/chatgpt/SETUP.md`](exports/chatgpt/SETUP.md).
 
-Cursor, Codex, Copilot, Gemini CLI, and Windsurf read Agent Skills directly — copy the folder into `.agents/skills/` and keep the full references:
+</details>
+
+### Gemini — Gem
+
+<details>
+<summary><strong>3-minute build</strong></summary>
+
+1. Gemini → **Gem manager → New Gem**. Name it `Voicestead`.
+2. **Instructions:** copy [`exports/gemini/instructions.txt`](exports/gemini/instructions.txt), paste it in.
+3. **Knowledge:** upload the single [`exports/gemini/knowledge-bundle.md`](exports/gemini/knowledge-bundle.md) — one file, so there's no 10-file cap to manage.
+4. **Save.**
+
+Full walkthrough: [`exports/gemini/SETUP.md`](exports/gemini/SETUP.md).
+
+</details>
+
+### AGENTS.md tools (Codex, Copilot, Cursor, Zed, Amp)
+
+One command drops it into your repo:
 
 ```bash
-cp -r skills/voicestead /path/to/project/.agents/skills/voicestead
+curl -o AGENTS.md https://raw.githubusercontent.com/greenpioneersolutions/voicestead/main/exports/agents/AGENTS.md
 ```
+
+Claude Code reads `CLAUDE.md`, so also run `printf '@AGENTS.md\n' >> CLAUDE.md`. More: [`exports/agents/SETUP.md`](exports/agents/SETUP.md).
+
+### Skill-native coding tools (Cursor, Codex, Copilot, Gemini CLI, Windsurf)
+
+These read Agent Skills natively — drop the full skill (all references, on-demand loading) into `.agents/skills/`:
+
+```bash
+git clone --depth 1 https://github.com/greenpioneersolutions/voicestead /tmp/voicestead \
+  && cp -r /tmp/voicestead/skills/voicestead .agents/skills/voicestead
+```
+
+*(The two `curl`/`git` commands assume the repo is public on GitHub.)*
 
 ### What each surface keeps
 
@@ -92,7 +132,7 @@ cp -r skills/voicestead /path/to/project/.agents/skills/voicestead
 |---|---|---|---|---|
 | On-demand references | ✅ | ✅ | ⚠️ retrieval | ❌ repo links |
 | Voice-profile persistence | ✅ file | ✅ file | ⚠️ paste | ⚠️ in-file |
-| Install | plugin | copy folder | paste + upload | copy one file |
+| Install | plugin | one command | paste + 1 upload | one command |
 
 `⚠️` = works with a caveat — the honest limits are in [`docs/PLATFORMS.md`](docs/PLATFORMS.md).
 
@@ -186,6 +226,8 @@ Add a case to `tests/cases.json`, run the suite, and include the scorecard delta
 ## Documentation
 
 - [Using Voicestead](docs/USING.md) — install, first run, the voice setup, the modes, storage.
+- [Platforms](docs/PLATFORMS.md) — what each surface (ChatGPT, Gemini, AGENTS.md, native) keeps and loses.
+- [Publishing the one-click versions](docs/PUBLISHING.md) — how to host the ChatGPT GPT and Gemini Gem.
 - [Architecture](docs/ARCHITECTURE.md) — how the skill and its eval harness are built.
 - [Beta access](docs/BETA.md) — what Voicestead Studio adds, and how to request early access.
 - [The launch play](docs/LAUNCH.md) — the go-to-market plan and where the project stands.

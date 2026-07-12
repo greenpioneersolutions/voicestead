@@ -8,7 +8,7 @@ Two ways to run Voicestead in ChatGPT. A **Custom GPT** is shareable and reusabl
 2. Go to the **Configure** tab.
 3. **Name** it `Voicestead` and add a short description (e.g. "Writing that sounds like you and never invents a fact").
 4. Open `instructions.txt` from this folder, copy all of it, and paste it into the **Instructions** box. (It is kept under ChatGPT's ~8,000-character limit on purpose.)
-5. Under **Knowledge**, upload every file in the `knowledge/` folder (10 files).
+5. Under **Knowledge**, upload the single `knowledge-bundle.md` — **one file** with every reference in it. (Prefer finer retrieval? Upload the ten separate files in `knowledge/` instead. Either works; don't upload both.)
 6. Paste the four lines from `conversation-starters.txt` into **Conversation starters**.
 7. Under **Capabilities**, leave **Web Search** on if you want it to study a public writer; the rest are optional.
 8. **Create → Save.** Choose **Only me**, **Anyone with the link**, or **Publish to the GPT Store**.
@@ -17,7 +17,7 @@ Two ways to run Voicestead in ChatGPT. A **Custom GPT** is shareable and reusabl
 
 1. In the ChatGPT sidebar, click **+ → New project**.
 2. Open **Instructions** and paste the contents of `instructions.txt`.
-3. **Add files** and upload everything in `knowledge/`.
+3. **Add files** and upload `knowledge-bundle.md` (one file), or the ten files in `knowledge/`.
 4. Start a chat inside the project — the instructions and files apply to every chat in it.
 
 ## Make it yours
