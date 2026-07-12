@@ -186,3 +186,28 @@ def test_write_all_refuses_on_validation_error(monkeypatch):
     monkeypatch.setattr(bx, "build_derived",
                         lambda: {"chatgpt/instructions.txt": "x" * (bx.CHATGPT_CHAR_LIMIT + 1)})
     assert bx.write_all() == 1      # blocked before any write
+
+
+def test_knowledge_bundle_present_for_both_chat_platforms():
+    derived = bx.build_derived()
+    assert "chatgpt/knowledge-bundle.md" in derived
+    assert "gemini/knowledge-bundle.md" in derived
+
+
+def test_knowledge_bundle_contains_every_reference():
+    bundle = bx.build_derived()["chatgpt/knowledge-bundle.md"]
+    for name, path in bx.reference_files():
+        assert ("# %s" % name) in bundle, "bundle missing section header for %s" % name
+        first_line = open(path, encoding="utf-8").read().strip().splitlines()[0]
+        assert first_line in bundle, "bundle missing real content of %s" % name
+
+
+def test_knowledge_bundle_identical_across_chat_platforms():
+    derived = bx.build_derived()
+    assert derived["chatgpt/knowledge-bundle.md"] == derived["gemini/knowledge-bundle.md"]
+
+
+def test_knowledge_bundle_does_not_trip_gemini_cap():
+    # The bundle sits beside knowledge/, not inside it, so it must not count
+    # toward the 10-file Gem cap.
+    assert bx.validate(bx.build_derived()) == []

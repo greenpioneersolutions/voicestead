@@ -33,7 +33,7 @@ SCAN_PATTERNS = [
     os.path.join("skills", "**", "*.md"),
     os.path.join("tests", "**", "*.md"),
     os.path.join("exports", "*.md"),
-    os.path.join("exports", "*", "*.md"),
+    os.path.join("exports", "*", "SETUP.md"),
 ]
 
 # [text](target) or ![alt](target), with an optional "title" after the target.

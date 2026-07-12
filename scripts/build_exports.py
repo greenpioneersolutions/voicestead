@@ -97,6 +97,26 @@ def _read_text(path):
         return fh.read()
 
 
+def _knowledge_bundle(refs):
+    """Every reference concatenated into one file.
+
+    Uploading ten separate knowledge files is the friction on ChatGPT/Gemini;
+    this is the single-file alternative, so a self-builder uploads one document
+    instead of ten. (The individual files in knowledge/ stay available for
+    platforms that retrieve better over separate documents.)
+    """
+    parts = [
+        "# Voicestead reference library (combined)",
+        "",
+        "Every Voicestead reference in one file, so you can upload a single "
+        "knowledge document instead of ten. If your platform retrieves better "
+        "over separate files, upload the individual files in `knowledge/` instead.",
+    ]
+    for name, path in refs:
+        parts += ["", "---", "", "# %s" % name, "", _read_text(path).rstrip()]
+    return "\n".join(parts) + "\n"
+
+
 def build_derived():
     """Return {path relative to exports/: text} for every GENERATED file.
 
@@ -116,6 +136,13 @@ def build_derived():
     derived["gemini/instructions.txt"] = instructions
     for name, path in refs:
         derived["gemini/knowledge/%s" % name] = _read_text(path)
+
+    # One-file knowledge bundle — a single upload instead of ten, for
+    # self-builders on either chat platform. Sits beside knowledge/, so it is
+    # not counted against the Gemini 10-file cap.
+    bundle = _knowledge_bundle(refs)
+    derived["chatgpt/knowledge-bundle.md"] = bundle
+    derived["gemini/knowledge-bundle.md"] = bundle
 
     # AGENTS.md — one flat file; references become repo links (no knowledge upload here)
     derived["agents/AGENTS.md"] = instructions.rstrip() + "\n\n" + _agents_footer(refs)
