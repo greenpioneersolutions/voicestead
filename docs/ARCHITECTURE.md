@@ -82,7 +82,7 @@ The core ships identical for everyone. Two optional files make it personal, and 
 
 **Honest storage on both surfaces.** There is no magic persistence. In Claude Code the skill writes `voice-profile.md` and `influences.md` and rereads them each run. On claude.ai you add the same two files to your Project knowledge. They're plain files you can inspect, edit, or delete, and they never leave your control — contributions to the project deliberately stay on shared surfaces (formats, eval cases, tell-lists), never personal voice files.
 
-*(A future connector, Studio — an API and MCP server at `api.voicestead.ai` — would add persistent voice memory across sessions, with tools to log drafts, record verdicts, and score against your history. The domain is set; it's in development and not yet shipped, and the beta isn't open. For now, storage is the plain files above.)*
+*(A future connector, Studio — an MCP server at `mcp.voicestead.ai` — would add persistent voice memory across sessions, with tools to log drafts, record verdicts, and score against your history. The domain is set; it's in development and not yet shipped, and the beta isn't open. For now, storage is the plain files above.)*
 
 ## How it's tested
 
