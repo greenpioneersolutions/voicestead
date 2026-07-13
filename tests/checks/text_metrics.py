@@ -237,41 +237,6 @@ def word_count(text: str) -> int:
     return len(_words(text))
 
 
-# ---- spelled-number licensing (prompt/source side only) ----
-_WORD_NUMS = {
-    "zero": 0, "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6,
-    "seven": 7, "eight": 8, "nine": 9, "ten": 10, "eleven": 11, "twelve": 12,
-    "thirteen": 13, "fourteen": 14, "fifteen": 15, "sixteen": 16, "seventeen": 17,
-    "eighteen": 18, "nineteen": 19, "twenty": 20, "thirty": 30, "forty": 40,
-    "fifty": 50, "sixty": 60, "seventy": 70, "eighty": 80, "ninety": 90,
-}
-
-
-def _spelled_numbers(t: str) -> set:
-    """Digit strings licensed by spelled numbers zero..ninety-nine ("fourteen" -> "14",
-    "seventy-three" -> "73"). The pair word is a lookahead, not consumed, so 'exactly
-    two big outages' still licenses 2."""
-    out = set()
-    for m in re.finditer(r"\b([a-z]+)(?=[-\s]+([a-z]+)\b)?", t.lower()):
-        a, b = m.group(1), m.group(2)
-        if a in _WORD_NUMS:
-            v = _WORD_NUMS[a]
-            if b in _WORD_NUMS and v >= 20 and v % 10 == 0 and _WORD_NUMS[b] < 10:
-                v += _WORD_NUMS[b]
-            out.add(str(v))
-    return out
-
-
-# ---- shared licensing helper (Truth gate v2) ----
-_QUOTE_MIN_WORDS = 5
-
-
-def _squash(t: str) -> str:
-    """Lowercase + collapse whitespace after _normalize: the comparison space for
-    substring licensing (quotes, citations, URLs)."""
-    return re.sub(r"\s+", " ", _normalize(t)).strip().lower()
-
-
 # --------------------------- checks ---------------------------
 #
 # check_no_invented_numbers, check_no_invented_quotes, check_no_invented_citations,

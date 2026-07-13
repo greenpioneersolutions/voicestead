@@ -17,7 +17,7 @@ Voicestead was built as a Claude Skill. It runs on other platforms through the b
 ## Hard limits worth knowing
 
 - **ChatGPT instructions:** ~8,000 characters. The distilled core is kept under this on purpose; CI fails if it grows past.
-- **Gemini Gem knowledge:** 10 files. Voicestead has exactly 10 references — it fits, with no room to spare. Adding an 11th reference forces a merge.
+- **Gemini Gem knowledge:** 10 files. Voicestead has exactly 10 *exported* references — it fits, with no room to spare. The connector-only `studio.md` ships in the skill as an 11th reference but is excluded from exports, so the Gemini cap still holds at 10. Adding another exported reference forces a merge.
 - **No cross-surface sync.** A GPT, a Gem, and a Claude skill are separate installs; updating one doesn't update the others. Re-pull `exports/` when the skill version bumps.
 
 ## Voicestead Memory — what the tests cover
