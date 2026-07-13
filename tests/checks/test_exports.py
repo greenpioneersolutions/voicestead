@@ -60,6 +60,7 @@ def test_reference_files_returns_ten_sorted_md_files():
     assert len(names) == 10
     assert all(n.endswith(".md") for n in names)
     assert "tells.md" in names
+    assert "studio.md" not in names  # connector-only reference, excluded from exports
 
 
 def test_core_exists_and_is_sealed_to_current_skill():
@@ -101,7 +102,7 @@ def test_chatgpt_instructions_equal_core_body_within_limit():
 def test_chatgpt_knowledge_files_match_source_references():
     derived = bx.build_derived()
     for name, path in bx.reference_files():
-        assert derived["chatgpt/knowledge/%s" % name] == open(path, encoding="utf-8").read()
+        assert derived["chatgpt/knowledge/%s" % name] == bx._export_text(path)
 
 
 def test_validate_flags_oversize_instructions():
@@ -198,7 +199,9 @@ def test_knowledge_bundle_contains_every_reference():
     bundle = bx.build_derived()["chatgpt/knowledge-bundle.md"]
     for name, path in bx.reference_files():
         assert ("# %s" % name) in bundle, "bundle missing section header for %s" % name
-        first_line = open(path, encoding="utf-8").read().strip().splitlines()[0]
+        # Compare against the exported (connector-stripped) text, not the raw file:
+        # for voice.md the "Turn on Voicestead Memory" region is excluded from exports.
+        first_line = bx._export_text(path).strip().splitlines()[0]
         assert first_line in bundle, "bundle missing real content of %s" % name
 
 
@@ -211,3 +214,25 @@ def test_knowledge_bundle_does_not_trip_gemini_cap():
     # The bundle sits beside knowledge/, not inside it, so it must not count
     # toward the 10-file Gem cap.
     assert bx.validate(bx.build_derived()) == []
+
+
+def test_studio_reference_is_excluded_from_exports():
+    # The Voicestead Memory connector is Claude/MCP-only; studio.md ships in the
+    # skill but must never export to the flat-blob surfaces (ChatGPT/Gemini/AGENTS),
+    # where its tools don't exist and it would breach the Gemini 10-file cap.
+    import os
+    names = [n for n, _ in bx.reference_files()]
+    assert "studio.md" not in names, "studio.md must be excluded from exports"
+    assert "studio.md" in os.listdir(bx.REFERENCES_DIR), "studio.md must still exist as a skill reference"
+    derived = bx.build_derived()
+    assert "chatgpt/knowledge/studio.md" not in derived
+    assert "gemini/knowledge/studio.md" not in derived
+    assert "studio.md" not in derived.get("chatgpt/knowledge-bundle.md", "")
+
+
+def test_connector_offer_not_leaked_into_exports():
+    derived = bx.build_derived()
+    for key in ("chatgpt/knowledge/voice.md", "gemini/knowledge/voice.md",
+                "chatgpt/knowledge-bundle.md", "gemini/knowledge-bundle.md"):
+        assert "mcp.voicestead.ai" not in derived[key], key
+        assert "Turning on Voicestead Memory" not in derived[key], key

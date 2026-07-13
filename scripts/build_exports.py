@@ -34,6 +34,13 @@ CHATGPT_CHAR_LIMIT = 8000
 GEMINI_KNOWLEDGE_LIMIT = 10
 RAW_BASE = "https://github.com/greenpioneersolutions/voicestead/blob/main"
 
+# References that ship in the skill (Claude Code, .skill upload, skill-native
+# .agents/skills) but are deliberately NOT exported to the flat-blob surfaces
+# (ChatGPT/Gemini/AGENTS.md). The Voicestead Memory connector is Claude/MCP-only,
+# so its conductor is inert there — and excluding it keeps Gemini knowledge within
+# the 10-file cap.
+EXCLUDE_FROM_EXPORTS = {"studio.md"}
+
 SEAL_RE = re.compile(
     r"<!--\s*distilled-from:\s*skills/voicestead/SKILL\.md\s+sha256=([0-9a-f]{64})\s*-->"
 )
@@ -70,11 +77,13 @@ def reseal(core_text, digest):
 
 
 def reference_files():
-    """Sorted [(name, abspath)] for every references/*.md."""
+    """Sorted [(name, abspath)] for every references/*.md that exports to the
+    flat-blob surfaces. Connector-only references (EXCLUDE_FROM_EXPORTS) ship in
+    the skill but never here."""
     return [
         (f, os.path.join(REFERENCES_DIR, f))
         for f in sorted(os.listdir(REFERENCES_DIR))
-        if f.endswith(".md")
+        if f.endswith(".md") and f not in EXCLUDE_FROM_EXPORTS
     ]
 
 
@@ -97,6 +106,24 @@ def _read_text(path):
         return fh.read()
 
 
+# A region of an exported reference wrapped in these markers is connector-only
+# (Claude/MCP surfaces) and is stripped from the flat-blob exports, where the
+# Voicestead Memory connector doesn't exist. Lets connector guidance live in a
+# locally-loaded reference (e.g. voice.md's "Turn on Voicestead Memory" offer)
+# without leaking it to ChatGPT/Gemini/AGENTS.
+_EXPORT_EXCLUDE_RE = re.compile(
+    r"<!--\s*export:exclude:start\s*-->.*?<!--\s*export:exclude:end\s*-->",
+    re.DOTALL,
+)
+
+
+def _export_text(path):
+    """Reference text as it should appear in the flat-blob exports: connector-only
+    regions stripped, trailing whitespace normalized to a single final newline."""
+    stripped = _EXPORT_EXCLUDE_RE.sub("", _read_text(path))
+    return stripped.rstrip() + "\n"
+
+
 def _knowledge_bundle(refs):
     """Every reference concatenated into one file.
 
@@ -113,7 +140,7 @@ def _knowledge_bundle(refs):
         "over separate files, upload the individual files in `knowledge/` instead.",
     ]
     for name, path in refs:
-        parts += ["", "---", "", "# %s" % name, "", _read_text(path).rstrip()]
+        parts += ["", "---", "", "# %s" % name, "", _export_text(path).rstrip()]
     return "\n".join(parts) + "\n"
 
 
@@ -130,12 +157,12 @@ def build_derived():
     # ChatGPT
     derived["chatgpt/instructions.txt"] = instructions
     for name, path in refs:
-        derived["chatgpt/knowledge/%s" % name] = _read_text(path)
+        derived["chatgpt/knowledge/%s" % name] = _export_text(path)
 
     # Gemini
     derived["gemini/instructions.txt"] = instructions
     for name, path in refs:
-        derived["gemini/knowledge/%s" % name] = _read_text(path)
+        derived["gemini/knowledge/%s" % name] = _export_text(path)
 
     # One-file knowledge bundle — a single upload instead of ten, for
     # self-builders on either chat platform. Sits beside knowledge/, so it is

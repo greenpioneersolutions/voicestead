@@ -17,8 +17,14 @@ Voicestead was built as a Claude Skill. It runs on other platforms through the b
 ## Hard limits worth knowing
 
 - **ChatGPT instructions:** ~8,000 characters. The distilled core is kept under this on purpose; CI fails if it grows past.
-- **Gemini Gem knowledge:** 10 files. Voicestead has exactly 10 references — it fits, with no room to spare. Adding an 11th reference forces a merge.
+- **Gemini Gem knowledge:** 10 files. Voicestead has exactly 10 *exported* references — it fits, with no room to spare. The connector-only `studio.md` ships in the skill as an 11th reference but is excluded from exports, so the Gemini cap still holds at 10. Adding another exported reference forces a merge.
 - **No cross-surface sync.** A GPT, a Gem, and a Claude skill are separate installs; updating one doesn't update the others. Re-pull `exports/` when the skill version bumps.
+
+## Voicestead Memory — what the tests cover
+
+The eval harness is single-turn, so it verifies connected-mode *instruction-following* — that retrieved memory is treated as quotable reference and never obeyed (injection defense), and that the skill never narrates the plumbing. It does NOT exercise live tool-call ordering (that `get_writer_context` precedes drafting, that `log_draft` only fires after approval); those are verified by hand against the real connector and, later, through the Claude Agent SDK multi-turn path.
+
+That instruction-following check is Tier-2: it calls a real model (`tests/studio_eval/run_studio_evals.py`, cases in `tests/studio_eval/injection_cases.json`) and is run on demand, not on every push — the same tier as the other real-model evals in this repo. The pass/fail logic itself (`check_case()` in that script) is pure and deterministic, and is unit-tested with no model call in `tests/studio_eval/test_runner_logic.py`, which does run on every push. In other words: the *grading logic* is CI-gated for free; whether the *model* actually resists injection and avoids narration is checked on demand. The deterministic invented-facts gate (`tests/checks/`) is a separate, fully unit-tested and contract-tested gate that also runs on every push.
 
 ## The honest bottom line
 
