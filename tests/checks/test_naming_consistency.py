@@ -12,7 +12,9 @@ def test_beta_and_readme_name_the_connector():
 
 
 def test_no_api_voicestead_host_regressed():
-    # the connector host is mcp.voicestead.ai; api.voicestead.ai must never reappear
-    out = subprocess.run(["git", "grep", "-l", "api.voicestead.ai"],
+    # The connector host is mcp.voicestead.ai; the old REST-style "api" host
+    # variant must never reappear anywhere in the tree.
+    needle = "api" + ".voicestead" + ".ai"   # assembled so this guard file can't match itself
+    out = subprocess.run(["git", "grep", "-l", needle],
                          cwd=REPO, capture_output=True, text=True).stdout
-    assert out.strip() == "", f"api.voicestead.ai found in: {out}"
+    assert out.strip() == "", f"{needle} found in: {out}"
