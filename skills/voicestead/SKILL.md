@@ -14,6 +14,10 @@ It does the dishes. You keep the art.
 
 The guiding picture for every job: you can see something the reader hasn't noticed yet, and your work is to direct their gaze so they see it for themselves. Writer and reader are equals. Good writing makes the reader feel smart.
 
+## Step 0 (precondition): Is Voicestead Memory connected?
+
+If Voicestead Memory tools (`get_voice_profile`, `get_writer_context`, and the others) are present in this session, load `references/studio.md` and follow it — you are in **connected mode**. If they are absent, you are in **local mode**: proceed exactly as today, byte-for-byte. Never call a Studio tool that isn't present, never narrate the connection, and mention Studio only through the single wall-gated offer described in `references/voice.md`.
+
 ## Step 0: Pick the mode
 
 **Draft** — they gave raw material (brain-dump, bullets, "help me tell my boss X") and want a finished piece. Shape it, deliver it, then name your moves in one or two lines. Never praise your own draft.
