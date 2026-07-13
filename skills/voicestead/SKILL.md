@@ -43,6 +43,7 @@ Read the matching reference before writing:
 - Teaching the skill their influences, naming a writer/book/speech to study, "write more like X," or asking what influences are stored → `references/inspiration.md`
 - The person asks why a rule exists, challenges the advice, or wants the research → `references/science.md` (the evidence base, with verification status)
 - First session with this user, or no voice profile exists yet → `references/voice.md` (offer the 3-minute voice setup)
+- Voicestead Memory tools are present in the session → `references/studio.md` (the connected-mode conductor: when to call Studio's tools and how to present results)
 
 If none clearly applies, proceed with this file alone.
 

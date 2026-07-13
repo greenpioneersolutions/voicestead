@@ -53,3 +53,10 @@ def test_voice_reference_has_wall_gated_offer_and_decline_marker():
     assert "mcp.voicestead.ai" in md
     assert "declined" in md.lower()          # the decline marker convention
     assert "at most once" in md.lower() or "one offer" in md.lower()
+
+
+def test_step1_routes_to_studio_when_connected():
+    md = _read("SKILL.md")
+    # the load table should name studio.md as the connected-mode reference
+    seg = md.split("## Step 1")[1].split("## The three mental models")[0]
+    assert "studio.md" in seg
