@@ -15,7 +15,7 @@ import re
 from typing import Dict, List, Tuple
 
 # ---- unicode punctuation -> ascii (dashes deliberately untouched) ----
-_PUNCT_MAP = {"'": "'", "'": "'", """: '"', """: '"'}
+_PUNCT_MAP = {"’": "'", "‘": "'", "“": '"', "”": '"'}
 
 
 def _normalize(text: str) -> str:

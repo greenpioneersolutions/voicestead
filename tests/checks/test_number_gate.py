@@ -44,3 +44,10 @@ def test_gate_checks_registry_has_four():
         "no_invented_numbers", "no_invented_quotes",
         "no_invented_citations", "no_invented_urls",
     }
+
+def test_curly_quoted_invented_quote_is_caught():
+    # smart/typographic quotes (Word, Google Docs, iMessage, LLM output) must still trip the gate
+    output = "She said “this is the best launch we have ever run” today."
+    passed, failures = ng.gate(output, prompt="write about the launch")
+    assert passed is False
+    assert any(f["id"] == "no_invented_quotes" for f in failures)
