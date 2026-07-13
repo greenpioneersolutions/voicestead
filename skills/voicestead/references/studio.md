@@ -11,7 +11,7 @@ Load this only when Voicestead Memory tools are present in the session. It tells
 
 ## Confirming the session (presence-first)
 
-Tool presence is enough to enter connected mode. Confirm the session is live *lazily*, on the first call you'd make anyway — `get_voice_profile` at the start of real work. If it returns `unauthorized`, drop to local mode and offer to reconnect once (see Errors). Don't call `ping`/`whoami` as a ritual; `ping` is only for an explicit "is Studio reachable right now?" check when a call fails ambiguously.
+Tool presence is enough to enter connected mode. Confirm the session is live *lazily*, on the first call you'd make anyway — `get_voice_profile` at the start of real work. If it returns `unauthorized`, drop to local mode and offer to reconnect once (see Errors). Neither `ping` nor `whoami` is a routine call — don't run either as a ritual. `ping` is only for an explicit "is Studio reachable right now?" check when a call fails ambiguously. `whoami` confirms which account is signed in — reach for it only if the user asks whether they're connected, or as whom ("am I on the right account?"); you never need it for ordinary drafting.
 
 ## The daily loop (invisible)
 
