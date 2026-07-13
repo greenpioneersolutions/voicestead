@@ -9,7 +9,7 @@
       "name": "voicestead",
       "source": "./",
       "description": "Turn rough thoughts into finished writing that reads as genuinely human -- in your voice, without the AI tells.",
-      "version": "0.10.0",
+      "version": "0.11.0",
       "author": {
         "name": "Green Pioneer Solutions"
       },

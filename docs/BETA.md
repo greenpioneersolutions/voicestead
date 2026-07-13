@@ -16,6 +16,8 @@ Studio is not shipped. The beta is not open yet, and there is no date to give yo
 
 When it opens, Studio runs as a hosted connector — an MCP server at **`mcp.voicestead.ai`** that your Claude connects to over MCP. The domain is decided; the service isn't live yet, and the exact connector endpoint lands when the beta opens.
 
+**The skill side is built.** The free skill already knows how to turn on Voicestead Memory and drive it — loading your profile, retrieving the right past lines, logging what you approve, keeping receipts — the moment the connector is present. What remains is the hosted service going live; until then, the skill runs exactly as it does today.
+
 The standalone skill works fully today, with or without Studio. Studio is an enhancement, never a dependency. Every mode — draft, improve, extract, review — runs the same on its own, and a session with no connector behaves exactly as it does now. If Studio never loaded for you, you'd lose the cross-session memory and nothing else.
 
 ## How to request access

@@ -4,6 +4,22 @@ All notable changes to Voicestead are recorded here. The format follows [Keep a 
 
 Versions v5 through v9 predate semver — they were the skill's internal revisions, promoted here from the eval guide's change log. Plugin packaging began at 0.9.0.
 
+## [0.11.0] — Unreleased
+
+### Added
+- **Voicestead Memory connector (skill side).** When the Studio MCP connector is present, the skill becomes an invisible conductor: presence-first detection, a wall-gated "turn on Voicestead Memory" offer with a remembered decline, a connect-time profile sync, the connected drafting loop (retrieve context → draft → log approved lines → verdicts → receipts), and a full error→state map. All of it lives in `references/studio.md`, loaded only when the connector is present.
+- **Offline invented-facts hard gate** shipped inside the skill (`skills/voicestead/checks/number_gate.py`) so the "no fabricated numbers/quotes/citations/URLs" gate can run on code-capable surfaces without the connector. Single-sourced with the dev harness (`tests/checks/text_metrics.py` delegates to it) and guarded by a contract test so the safety gate can't drift.
+- `docs/CONNECTOR-VALIDATION.md` — a manual end-to-end checklist for validating the live connector (the part the single-turn eval harness can't reach).
+- Tier-2 injection-defense + no-narration eval cases under `tests/studio_eval/`, plus a simulated-context seam in `tests/run_skill.py` and a deterministic runner-logic test.
+
+### Changed
+- `SKILL.md` gains a guarded connection precondition and a Step 1 route to `references/studio.md`. Local mode (no connector) behavior is byte-identical to before.
+- `references/voice.md` adds the wall-gated Memory offer and the remembered-decline convention.
+
+### Security
+- **Truth-in-context:** retrieved memory is treated as quotable reference, never executed as instructions, never fabricated. **Write-path is approved-only:** the skill logs only user-blessed lines, never raw conversation. **No credentials in the skill:** the connector's OAuth owns identity.
+- Connector-only docs (`studio.md`, the `voice.md` offer) are excluded from the flat-blob exports (ChatGPT/Gemini/AGENTS) via whole-file and region-level exclusion, keeping the Gemini 10-file cap and never leaking connector guidance to surfaces without the connector.
+
 ## [0.10.0] — Unreleased
 
 ### Added

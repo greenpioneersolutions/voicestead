@@ -236,3 +236,25 @@ def test_connector_offer_not_leaked_into_exports():
                 "chatgpt/knowledge-bundle.md", "gemini/knowledge-bundle.md"):
         assert "mcp.voicestead.ai" not in derived[key], key
         assert "Turning on Voicestead Memory" not in derived[key], key
+
+
+def test_validate_flags_a_connector_string_leak():
+    # defense-in-depth: a connector-only string reaching an export must be caught
+    bad = {"gemini/knowledge/voice.md": "add mcp.voicestead.ai in your connector settings"}
+    errors = bx.validate(bad)
+    assert any("connector leak" in e for e in errors)
+
+
+def test_validate_clean_build_has_no_connector_leak():
+    # the real build must not trip the leak scan
+    assert bx.validate(bx.build_derived()) == []
+
+
+def test_validate_flags_unbalanced_exclusion_markers(tmp_path, monkeypatch):
+    # an exported reference with a start marker but no end would silently fail to strip
+    ref = tmp_path / "bad.md"
+    ref.write_text("intro\n<!-- export:exclude:start -->\nsecret connector text\n",
+                   encoding="utf-8")
+    monkeypatch.setattr(bx, "reference_files", lambda: [("bad.md", str(ref))])
+    errors = bx.validate({})
+    assert any("unbalanced" in e for e in errors)

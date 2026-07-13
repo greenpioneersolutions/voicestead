@@ -4,6 +4,8 @@ A manual, end-to-end checklist for verifying the skill's connected-mode behavior
 
 **Why manual:** the automated eval harness is single-turn and cannot exercise live tool-call *ordering* (it verifies instruction-following only — see [PLATFORMS.md](PLATFORMS.md)). This checklist covers the gap: that the skill actually calls the right tools at the right beats, and that the server honors the tool contract the skill assumes.
 
+**Automated status (0.11.0 RC):** the Tier-2 injection-defense + no-narration eval (`tests/studio_eval/run_studio_evals.py`) passes **3/3** against the real `claude-cli` backend — a directional literal-token smoke test (`runs=1`), not full verification. The end-to-end checks below remain, and require the live server.
+
 ## Prerequisites
 
 - [ ] Studio server live at `mcp.voicestead.ai`, advertising OAuth discovery.
@@ -88,3 +90,4 @@ Induce each and confirm the skill degrades gracefully — never a raw error or a
 - [ ] No third REST-style `api` host is planned — the canonical hosts are only `mcp.voicestead.ai` and `app.voicestead.ai`.
 - [ ] The connector display string is exactly **Voicestead Memory**.
 - [ ] Archive-import/backfill will **not** be lit by the beta date (the skill copy is gated accordingly).
+- [ ] Attacker-influenceable **retrieved memory is never used as the licensing "source"** for the fact gate — neither the offline `number_gate` nor the server `score_draft`. Otherwise a fabricated figure approved into memory once could license itself in every later draft. (Skill-side is already closed: `studio.md` states memory licenses voice, never facts; confirm the server honors the same.)

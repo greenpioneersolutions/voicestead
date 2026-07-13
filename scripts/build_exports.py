@@ -34,6 +34,13 @@ CHATGPT_CHAR_LIMIT = 8000
 GEMINI_KNOWLEDGE_LIMIT = 10
 RAW_BASE = "https://github.com/greenpioneersolutions/voicestead/blob/main"
 
+# Defense-in-depth for the connector export exclusion: these connector-only strings
+# must never reach a flat-blob export, and an exported reference's exclude markers must
+# balance (an unbalanced pair silently fails to strip its region).
+_EXCLUDE_START = "export:exclude:start"
+_EXCLUDE_END = "export:exclude:end"
+_CONNECTOR_LEAK_STRINGS = ("mcp.voicestead.ai", "export:exclude", "get_writer_context", "log_draft")
+
 # References that ship in the skill (Claude Code, .skill upload, skill-native
 # .agents/skills) but are deliberately NOT exported to the flat-blob surfaces
 # (ChatGPT/Gemini/AGENTS.md). The Voicestead Memory connector is Claude/MCP-only,
@@ -192,6 +199,23 @@ def validate(derived):
             "Gemini knowledge has %d files, over the %d-file Gem cap — merge references"
             % (len(gemini_files), GEMINI_KNOWLEDGE_LIMIT)
         )
+    # Defense-in-depth: connector-only content must never reach a flat-blob export.
+    # Catches an authoring slip — e.g. a mistyped or unbalanced export:exclude marker
+    # that fails to strip — that the region-strip would otherwise let through silently.
+    for rel, content in sorted(derived.items()):
+        for needle in _CONNECTOR_LEAK_STRINGS:
+            if needle in content:
+                errors.append(
+                    "connector leak: %r reached exports/%s — check export:exclude markers"
+                    % (needle, rel))
+    # An exported reference whose exclude markers don't balance would silently fail to
+    # strip a connector-only region.
+    for name, path in reference_files():
+        text = _read_text(path)
+        if text.count(_EXCLUDE_START) != text.count(_EXCLUDE_END):
+            errors.append(
+                "unbalanced export:exclude markers in references/%s — a region would leak"
+                % name)
     return errors
 
 
