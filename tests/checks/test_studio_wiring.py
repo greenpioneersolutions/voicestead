@@ -45,3 +45,11 @@ def test_studio_reference_never_promises_unshipped_features_as_live():
     # a naive "you can now import your archive" claim would violate the honesty rule
     assert "you can now import" not in md
     assert "backfill is live" not in md
+
+
+def test_voice_reference_has_wall_gated_offer_and_decline_marker():
+    md = _read("references/voice.md")
+    assert "Voicestead Memory" in md
+    assert "mcp.voicestead.ai" in md
+    assert "declined" in md.lower()          # the decline marker convention
+    assert "at most once" in md.lower() or "one offer" in md.lower()
