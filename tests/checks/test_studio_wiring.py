@@ -20,3 +20,28 @@ def test_local_mode_is_the_default_stance():
     assert "local mode" in md.lower()
     assert "never call a Studio tool that isn't present" in md.lower() or \
            "never call a studio tool that isn't present" in md.lower()
+
+
+def test_studio_reference_covers_the_contract():
+    md = _read("references/studio.md")
+    # invariants
+    assert "approved" in md.lower() and "log_draft" in md
+    assert "reference" in md.lower() and "delimiters" in md.lower()   # truth-in-context
+    # the full tool surface
+    for tool in ["ping", "whoami", "get_voice_profile", "save_voice_profile",
+                 "list_influence_cards", "save_influence_card", "get_writer_context",
+                 "log_draft", "log_verdict", "score_draft", "get_writer_stats"]:
+        assert tool in md, tool
+    # every A4 error code has a designed state
+    for code in ["unauthorized", "forbidden_scope", "invalid_input", "not_found",
+                 "conflict", "limit_exceeded", "budget_exhausted", "quarantined", "internal"]:
+        assert code in md, code
+    # gated, honest backfill copy — never claims availability
+    assert "coming soon" in md.lower() or "not yet" in md.lower() or "not live" in md.lower()
+
+
+def test_studio_reference_never_promises_unshipped_features_as_live():
+    md = _read("references/studio.md").lower()
+    # a naive "you can now import your archive" claim would violate the honesty rule
+    assert "you can now import" not in md
+    assert "backfill is live" not in md
