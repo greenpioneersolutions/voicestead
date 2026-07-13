@@ -177,6 +177,8 @@ The lean core ships the same for everyone. What makes it *yours* is two files yo
 
 **The skill sounds like you today. Studio remembers you tomorrow.**
 
+You turn it on as a connector called **Voicestead Memory** — the front door to Studio.
+
 The free skill sounds like you as long as you keep feeding it your voice files by hand. Studio does the remembering for you: a secure, private memory behind your Claude that keeps your voice profile current, saves the lines that actually worked, and hands your Claude the right ones at the right moment.
 
 - **Remembers your voice.** One living profile, versioned like code. Every session, on every surface, your Claude starts already knowing you — you never explain yourself twice.

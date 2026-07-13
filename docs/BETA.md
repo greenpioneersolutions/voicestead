@@ -2,6 +2,8 @@
 
 Studio is a connector that gives the skill a memory. Right now Voicestead reads your voice profile and influences from plain files each run. Studio keeps those, plus your drafts and your verdicts, across sessions — so the skill remembers your voice and the writers who shaped you without you re-pasting them, and it can learn from what you approved last time.
 
+**A note on names.** *Studio* is the product — the private memory, taste, and receipts layer. *Voicestead Memory* is the capability you turn on to use it: the connector your Claude signs into. When the skill offers to "turn on Voicestead Memory," that's the front door to Studio.
+
 Concretely, it adds:
 
 - **Persistent voice memory** across sessions, so your profile and influences carry over instead of living in files you have to attach.
