@@ -81,3 +81,16 @@ def test_connect_reference_covers_every_client_and_the_gotcha():
     # the reconnect fixes the error states point to
     assert "re-sign-in" in md or "re-sign in" in md.lower()
     assert "permission" in md.lower()
+
+
+def test_studio_has_the_doctor_with_verbatim_scope_labels():
+    md = _read("references/studio.md")
+    assert "ping" in md and "whoami" in md
+    # the four app labels, verbatim
+    for label in ["Read your memories", "Add to your memory",
+                  "Use your voice profile", "See your receipts"]:
+        assert label in md, label
+    # the silent first check that drops to broken-connection behavior without announcing
+    low = md.lower()
+    assert "silent" in low
+    assert "start" in low and "session" in low

@@ -11,7 +11,32 @@ Load this only when Voicestead Memory tools are present in the session. It tells
 
 ## Confirming the session (presence-first)
 
-Tool presence is enough to enter connected mode. Confirm the session is live *lazily*, on the first call you'd make anyway — `get_voice_profile` at the start of real work. If it returns `unauthorized`, drop to local mode and offer to reconnect once (see Errors). Neither `ping` nor `whoami` is a routine call — don't run either as a ritual. `ping` is only for an explicit "is Studio reachable right now?" check when a call fails ambiguously. `whoami` confirms which account is signed in — reach for it only if the user asks whether they're connected, or as whom ("am I on the right account?"); you never need it for ordinary drafting.
+Tool presence is enough to enter connected mode. At the start of a connected session, run the
+doctor once, *silently* (see The doctor), to confirm the connection is live and see which scopes it
+grants; hold that for the session. `get_voice_profile` at the start of real work is your first data
+call and re-confirms liveness. Don't re-run the doctor every turn — once per session, plus whenever
+the user asks about the connection or a call fails ambiguously.
+
+## The doctor — checking the connection
+
+Run the doctor when the user asks whether memory is working, says they just connected, or a connect
+guide just finished (the "ask me to check the connection" hand-off). Two calls: `ping`, then
+`whoami`. Report in plain language — no codes, no tool names:
+
+> Connected as ⟨identity⟩. This session can ⟨the granted scope labels⟩.
+
+Use the app's own labels, verbatim, for the scopes — never invent your own:
+**"Read your memories," "Add to your memory," "Use your voice profile," "See your receipts."** Name
+only the ones this session actually grants.
+
+On failure, say what's wrong and the single next step — nothing more. Draw the next step from
+`references/connect.md` (a re-sign-in, or approving a missing permission), then carry on with the
+writing.
+
+**The silent first check.** At the start of a connected session, run the doctor once, silently, to
+confirm the connection before you rely on it. If it fails, drop to the same behavior as a broken
+connection — finish the user's work locally — and say nothing about it unless and until Studio
+becomes relevant to what they asked for. A health check the user didn't ask for is never announced.
 
 ## The daily loop (invisible)
 
