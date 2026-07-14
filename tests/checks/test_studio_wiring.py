@@ -120,6 +120,20 @@ def test_free_cap_is_the_only_extra_paid_mention_and_is_gated():
     assert "raises the cap" in studio[idx:idx + 800]
     # it is not duplicated as a free-floating upsell in the wall-offer file
     assert "raises the cap" not in voice
+    # spec 6c: exactly two gated paid mentions across the WHOLE skill — the
+    # wall-gated offer (voice.md) and this free-cap line (studio.md). Prove no
+    # third free-cap upsell hides in any other file: the phrasing occurs exactly
+    # once skill-wide, and only in studio.md.
+    import os
+    total = 0
+    for root, _, files in os.walk(SKILL):
+        for name in files:
+            if name.endswith(".md"):
+                n = open(os.path.join(root, name), encoding="utf-8").read().count("raises the cap")
+                total += n
+                if n:
+                    assert name == "studio.md", "unexpected free-cap upsell in %s" % name
+    assert total == 1, "expected exactly one free-cap paid mention skill-wide, found %d" % total
 
 
 def test_router_covers_all_five_states_terse_and_before_step0():
