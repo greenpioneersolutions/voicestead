@@ -94,3 +94,29 @@ def test_studio_has_the_doctor_with_verbatim_scope_labels():
     low = md.lower()
     assert "silent" in low
     assert "start" in low and "session" in low
+
+
+def test_error_section_states_retry_policy_and_global_rules():
+    md = _read("references/studio.md")
+    low = md.lower()
+    # only limit_exceeded (rate) and internal retry — the policy is stated
+    assert "retry" in low
+    assert "limit_exceeded" in md and "internal" in md
+    # the global no-leak / no-stall rules
+    assert "raw code" in low or "raw error" in low
+    assert "single retry" in low or "one retry" in low or "beyond a single retry" in low
+    # quarantined framed as the product working, pointing at the app
+    assert "app.voicestead.ai" in md
+    # budget_exhausted goes silent unless asked
+    assert "budget_exhausted" in md
+
+
+def test_free_cap_is_the_only_extra_paid_mention_and_is_gated():
+    studio = _read("references/studio.md")
+    voice = _read("references/voice.md")
+    # the free-cap paid line exists exactly once, inside the free-cap context
+    assert studio.count("raises the cap") == 1
+    idx = studio.index("free memory cap")
+    assert "raises the cap" in studio[idx:idx + 800]
+    # it is not duplicated as a free-floating upsell in the wall-offer file
+    assert "raises the cap" not in voice
