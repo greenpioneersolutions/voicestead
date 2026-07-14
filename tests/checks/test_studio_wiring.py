@@ -120,3 +120,21 @@ def test_free_cap_is_the_only_extra_paid_mention_and_is_gated():
     assert "raises the cap" in studio[idx:idx + 800]
     # it is not duplicated as a free-floating upsell in the wall-offer file
     assert "raises the cap" not in voice
+
+
+def test_router_covers_all_five_states_terse_and_before_step0():
+    md = _read("SKILL.md")
+    router = md[:md.index("## Step 0: Pick the mode")]
+    low = router.lower()
+    # the three visible states in the always-loaded file (broken/limited fold under connected)
+    assert "local" in low and "curious" in low and "connected" in low
+    # routes to both references, gated
+    assert "references/connect.md" in router
+    assert "references/studio.md" in router
+    # curiosity trigger + local-stance preserved
+    assert "memory" in low
+    assert "proceed exactly as today, byte-for-byte" in md
+    assert "Never call a Studio tool that isn't present" in md
+    # Step 1 connect row now points at connect.md, not voice.md, for the mechanics
+    step1 = md[md.index("## Step 1"):md.index("## The three mental models")]
+    assert "references/connect.md" in step1

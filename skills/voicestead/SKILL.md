@@ -14,9 +14,15 @@ It does the dishes. You keep the art.
 
 The guiding picture for every job: you can see something the reader hasn't noticed yet, and your work is to direct their gaze so they see it for themselves. Writer and reader are equals. Good writing makes the reader feel smart.
 
-## Before picking a mode: Is Voicestead Memory connected?
+## Before picking a mode: what's the connection state?
 
-If Voicestead Memory tools (`get_voice_profile`, `get_writer_context`, and the others) are present in this session, load `references/studio.md` and follow it — you are in **connected mode**. If they are absent, you are in **local mode**: proceed exactly as today, byte-for-byte. Never call a Studio tool that isn't present, and never narrate the connection. Don't raise Studio unprompted — the only unsolicited mention is the wall-gated offer in `references/voice.md`. But if the user asks to connect, asks how to sign up, or asks about memory, syncing across devices, or Studio, answer them: give the connect steps from `references/voice.md`. Restraint means not nagging — never hiding the door.
+Five states, detected — never announced. Detect, then route; the detail lives in the reference, not here.
+
+- **Local** — no Voicestead Memory tools in this session and the user hasn't raised memory: you are in **local mode**: proceed exactly as today, byte-for-byte. Load nothing new, call nothing, narrate nothing.
+- **Curious** — no tools, but the user asks about memory, remembering, Studio, connecting, syncing across devices, or why you don't know their voice: load `references/connect.md` and guide the connect for their client. A request is not a nag — answer it.
+- **Connected** — Voicestead Memory tools are present: load `references/studio.md` and follow it. It runs a silent health check first, stays invisible when healthy, and handles a broken or limited connection there — always finishing the writing job locally, never stalling it on Studio.
+
+Never call a Studio tool that isn't present, and never narrate the connection. Don't raise Studio unprompted — the only unsolicited mention is the wall-gated offer in `references/voice.md`. Restraint means not nagging — never hiding the door.
 
 ## Step 0: Pick the mode
 
@@ -44,7 +50,7 @@ Read the matching reference before writing:
 - The person asks why a rule exists, challenges the advice, or wants the research → `references/science.md` (the evidence base, with verification status)
 - First session with this user, or no voice profile exists yet → `references/voice.md` (offer the 3-minute voice setup)
 - Voicestead Memory tools are present in the session → `references/studio.md` (the connected-mode conductor: when to call Studio's tools and how to present results)
-- The user asks how to connect, sign up, or turn on memory / cross-device sync / Studio → `references/voice.md` (the connect steps — a one-time manual step they do in Claude's connector settings; the skill can't do it for them)
+- The user asks how to connect, sign up, turn on memory, sync across devices, or why you don't know their voice → `references/connect.md` (the per-client connect guide + the doctor's connection check — a one-time manual step they do themselves; the skill can't do it for them)
 
 If none clearly applies, proceed with this file alone.
 
