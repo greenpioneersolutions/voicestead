@@ -15,6 +15,7 @@ Versions v5 through v9 predate semver — they were the skill's internal revisio
 ### Changed
 - `SKILL.md` gains a guarded connection precondition and a Step 1 route to `references/studio.md`. Local mode (no connector) behavior is byte-identical to before.
 - `references/voice.md` adds the wall-gated Memory offer and the remembered-decline convention.
+- **Onboarding to connect.** The README (Connect subsection + a pointer up top) and `docs/BETA.md` now carry the connect steps and the `mcp.voicestead.ai` address, and the skill answers a direct "how do I connect?" — a pull path — instead of only the wall-gated offer. Connecting is stated plainly as a one-time manual step in Claude's connector settings; the skill can't do it for you.
 
 ### Security
 - **Truth-in-context:** retrieved memory is treated as quotable reference, never executed as instructions, never fabricated. **Write-path is approved-only:** the skill logs only user-blessed lines, never raw conversation. **No credentials in the skill:** the connector's OAuth owns identity.

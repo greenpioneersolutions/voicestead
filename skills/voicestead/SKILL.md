@@ -16,7 +16,7 @@ The guiding picture for every job: you can see something the reader hasn't notic
 
 ## Before picking a mode: Is Voicestead Memory connected?
 
-If Voicestead Memory tools (`get_voice_profile`, `get_writer_context`, and the others) are present in this session, load `references/studio.md` and follow it — you are in **connected mode**. If they are absent, you are in **local mode**: proceed exactly as today, byte-for-byte. Never call a Studio tool that isn't present, never narrate the connection, and mention Studio only through the single wall-gated offer described in `references/voice.md`.
+If Voicestead Memory tools (`get_voice_profile`, `get_writer_context`, and the others) are present in this session, load `references/studio.md` and follow it — you are in **connected mode**. If they are absent, you are in **local mode**: proceed exactly as today, byte-for-byte. Never call a Studio tool that isn't present, and never narrate the connection. Don't raise Studio unprompted — the only unsolicited mention is the wall-gated offer in `references/voice.md`. But if the user asks to connect, asks how to sign up, or asks about memory, syncing across devices, or Studio, answer them: give the connect steps from `references/voice.md`. Restraint means not nagging — never hiding the door.
 
 ## Step 0: Pick the mode
 
@@ -44,6 +44,7 @@ Read the matching reference before writing:
 - The person asks why a rule exists, challenges the advice, or wants the research → `references/science.md` (the evidence base, with verification status)
 - First session with this user, or no voice profile exists yet → `references/voice.md` (offer the 3-minute voice setup)
 - Voicestead Memory tools are present in the session → `references/studio.md` (the connected-mode conductor: when to call Studio's tools and how to present results)
+- The user asks how to connect, sign up, or turn on memory / cross-device sync / Studio → `references/voice.md` (the connect steps — a one-time manual step they do in Claude's connector settings; the skill can't do it for them)
 
 If none clearly applies, proceed with this file alone.
 

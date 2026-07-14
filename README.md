@@ -58,6 +58,8 @@ Find your platform, do the one thing in the **Install** column. That's it.
 
 > **Want true one-click on ChatGPT & Gemini** — click a link, start typing, nothing to paste or upload? That version is *hosted*, so it has to be published once from a Voicestead account. The 5-minute how-to is in [`docs/PUBLISHING.md`](docs/PUBLISHING.md); once it's live this table gets two "▶ Open" links. Until then, the 3-minute build below is the way.
 
+> **Cross-device memory (beta, free):** want your voice profile to follow you to every device? Turn on **Voicestead Memory** — a connector you add once in Claude's settings. See [Connect Voicestead Memory](#connect-voicestead-memory).
+
 ### Claude Code
 
 Plugin (auto-updates when the version bumps):
@@ -188,7 +190,18 @@ The free skill sounds like you as long as you keep feeding it your voice files b
 
 Studio never writes a word — your own Claude does that, on your own subscription. Your writing stays encrypted, walled off, never trained on, and deletable for real. Same honesty rule as the skill: it returns your real, stored words and never fabricates a memory. The skill is the tool; Studio is the memory.
 
-Studio will be paid at launch. **The beta is free**, and the skill stays free either way. Join the list at **[voicestead.ai](https://voicestead.ai)** *(coming soon)*, or read what it adds in [`docs/BETA.md`](docs/BETA.md).
+Studio will be paid at launch. **The beta is free and open now** — connect below. The skill stays free either way; read what Studio adds in [`docs/BETA.md`](docs/BETA.md).
+
+### Connect Voicestead Memory
+
+Connecting is a one-time, **manual** step you do in Claude's connector settings. The skill is only instructions — it can't add the connector or make an account for you, so don't wait on it to sign you up.
+
+1. In Claude's **connector settings**, add `mcp.voicestead.ai`.
+2. A browser tab opens at `app.voicestead.ai` — sign in with a **magic link** (no password).
+3. Approve access ("Allow Claude to access your Voicestead Memory").
+4. Done — the Memory tools light up in your session. About two minutes.
+
+Once connected, just write as usual and the skill uses your Memory automatically. Prefer not to? The free skill works exactly the same without it.
 
 ---
 

@@ -10,23 +10,22 @@ Concretely, it adds:
 - **A record of your drafts and verdicts** — what you wrote, what you approved, what you rejected — so the skill can weigh your past calls when it drafts the next thing.
 - **Import** of writing you already have, so the skill starts from your real work instead of a cold start.
 
-## Status: in development
+## Status: beta is open
 
-Studio is not shipped. The beta is not open yet, and there is no date to give you — announcing one before it's true would break the same rule this skill exists to enforce.
-
-When it opens, Studio runs as a hosted connector — an MCP server at **`mcp.voicestead.ai`** that your Claude connects to over MCP. The domain is decided; the service isn't live yet, and the exact connector endpoint lands when the beta opens.
-
-**The skill side is built.** The free skill already knows how to turn on Voicestead Memory and drive it — loading your profile, retrieving the right past lines, logging what you approve, keeping receipts — the moment the connector is present. What remains is the hosted service going live; until then, the skill runs exactly as it does today.
+The beta is **open and free**. Studio runs as a hosted connector — an MCP server at **`mcp.voicestead.ai`** that your Claude connects to over MCP, with magic-link sign-in at `app.voicestead.ai`. The skill side is built too: the free skill already knows how to turn on Voicestead Memory and drive it — loading your profile, retrieving the right past lines, logging what you approve, keeping receipts — the moment the connector is present.
 
 The standalone skill works fully today, with or without Studio. Studio is an enhancement, never a dependency. Every mode — draft, improve, extract, review — runs the same on its own, and a session with no connector behaves exactly as it does now. If Studio never loaded for you, you'd lose the cross-session memory and nothing else.
 
-## How to request access
+## How to connect
 
-Three honest options while it's in development:
+Connecting is a one-time, **manual** step you do in Claude's connector settings — the skill can't do it for you (a skill is only instructions; it has no way to register an account or add a connector, so don't wait on it to sign you up).
 
-- **Watch or star [the repo](https://github.com/greenpioneersolutions/voicestead).** Release news posts there first — watching is the surest way to hear when the beta opens.
-- **Open a [GitHub issue](https://github.com/greenpioneersolutions/voicestead/issues)** describing how you'd use it. Real use cases shape what ships and who gets early access. Tell us what you write, where the file-based setup gets in your way, and what you'd want Studio to remember.
-- **Join the waitlist at [voicestead.ai](https://voicestead.ai)** once it's live. The site isn't up yet; when it is, the waitlist feeds the beta list directly.
+1. In Claude's **connector settings**, add `mcp.voicestead.ai`.
+2. A browser tab opens at `app.voicestead.ai` — sign in with a **magic link** (no password).
+3. Approve access ("Allow Claude to access your Voicestead Memory").
+4. The Memory tools light up in your session — about two minutes, no config.
+
+Prefer to follow along or flag a problem? [Watch the repo](https://github.com/greenpioneersolutions/voicestead) for release news, or [open an issue](https://github.com/greenpioneersolutions/voicestead/issues) with how you'd use it and anything that got in your way.
 
 ## What it will not change
 
