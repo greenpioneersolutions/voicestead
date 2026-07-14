@@ -1,5 +1,7 @@
 # Connecting Voicestead Memory — the per-client guide
 
+Canonical source: `CONNECT.md` at the repo root — this file mirrors it; keep the steps in sync.
+
 Load this when the user asks about memory, remembering, Studio, connecting, syncing across
 devices, or why you don't know their voice — and when a call to a present Studio tool fails and the
 fix is to reconnect. It carries the connect steps for each client and the one-line reconnect fixes

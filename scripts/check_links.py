@@ -29,6 +29,8 @@ SCAN_PATTERNS = [
     "README.md",
     "CONTRIBUTING.md",
     "CHANGELOG.md",
+    "CONNECT.md",
+    "TROUBLESHOOTING.md",
     "docs/*.md",
     os.path.join("skills", "**", "*.md"),
     os.path.join("tests", "**", "*.md"),
