@@ -60,3 +60,24 @@ def test_step1_routes_to_studio_when_connected():
     # the load table should name studio.md as the connected-mode reference
     seg = md.split("## Step 1")[1].split("## The three mental models")[0]
     assert "studio.md" in seg
+
+
+def test_connect_reference_covers_every_client_and_the_gotcha():
+    md = _read("references/connect.md")
+    # the connect endpoint and the Claude Code command
+    assert "https://mcp.voicestead.ai/mcp" in md
+    assert "claude mcp add" in md
+    # all three client guides
+    assert "claude.ai" in md.lower()
+    assert "desktop" in md.lower()
+    assert "Claude Code" in md
+    # the #1 silent failure, called out
+    assert "current" in md.lower() and "chat" in md.lower()
+    assert "enable" in md.lower() or "turn" in md.lower()
+    # ask ONE question when the client is unknown
+    assert "Claude app, or Claude Code" in md
+    # every guide hands off to the doctor
+    assert md.count("ask me to check the connection") >= 3
+    # the reconnect fixes the error states point to
+    assert "re-sign-in" in md or "re-sign in" in md.lower()
+    assert "permission" in md.lower()

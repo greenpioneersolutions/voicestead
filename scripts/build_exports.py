@@ -46,7 +46,7 @@ _CONNECTOR_LEAK_STRINGS = ("mcp.voicestead.ai", "export:exclude", "get_writer_co
 # (ChatGPT/Gemini/AGENTS.md). The Voicestead Memory connector is Claude/MCP-only,
 # so its conductor is inert there — and excluding it keeps Gemini knowledge within
 # the 10-file cap.
-EXCLUDE_FROM_EXPORTS = {"studio.md"}
+EXCLUDE_FROM_EXPORTS = {"studio.md", "connect.md"}
 
 SEAL_RE = re.compile(
     r"<!--\s*distilled-from:\s*skills/voicestead/SKILL\.md\s+sha256=([0-9a-f]{64})\s*-->"

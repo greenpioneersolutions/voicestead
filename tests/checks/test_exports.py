@@ -258,3 +258,18 @@ def test_validate_flags_unbalanced_exclusion_markers(tmp_path, monkeypatch):
     monkeypatch.setattr(bx, "reference_files", lambda: [("bad.md", str(ref))])
     errors = bx.validate({})
     assert any("unbalanced" in e for e in errors)
+
+
+def test_connect_reference_is_excluded_from_exports():
+    # connect.md is Claude/MCP-only (it names mcp.voicestead.ai and `claude mcp add`);
+    # it ships in the skill but must never reach a flat-blob export.
+    import os
+    names = [n for n, _ in bx.reference_files()]
+    assert "connect.md" not in names, "connect.md must be excluded from exports"
+    assert "connect.md" in os.listdir(bx.REFERENCES_DIR), "connect.md must exist as a skill reference"
+    derived = bx.build_derived()
+    assert "chatgpt/knowledge/connect.md" not in derived
+    assert "gemini/knowledge/connect.md" not in derived
+    assert "connect.md" not in derived.get("chatgpt/knowledge-bundle.md", "")
+    # the real build stays leak-free and within limits
+    assert bx.validate(derived) == []
