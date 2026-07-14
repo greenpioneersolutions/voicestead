@@ -5,152 +5,80 @@
   </picture>
 </p>
 
-<p align="center"><strong>Stop sounding like AI. Start sounding like your voice.</strong></p>
+<p align="center"><strong>A writing skill that keeps your voice.</strong></p>
 
-<p align="center">Voicestead teaches the <a href="https://claude.com/claude-code">Claude</a> you already use to write the way you do — and to ask for a real fact instead of inventing one. Paste in a rough draft, get back something you'd actually hit send on.</p>
+<p align="center">Voicestead teaches the <a href="https://claude.com/claude-code">Claude</a> you already use to do the mechanical work — structure, tightening, cutting the tells that mark prose as machine-made — and leaves you the thinking and the voice. It works entirely locally; connect memory later if you want it.</p>
 
-<p align="center">A writing skill plus the eval harness that keeps it honest — so the promise is measured, not asserted.</p>
-
-<p align="center"><em>No account · No credit card · Open source (MIT) · Works with your Claude subscription</em></p>
-
-<p align="center"><a href="#install"><strong>Install free — 2-minute setup</strong></a>&nbsp; · &nbsp;<a href="https://voicestead.ai">voicestead.ai</a> <em>(coming soon)</em></p>
-
----
-
-## See it first
-
-Paste in something that reeks of AI. Here's what comes back — a real pass, not a word-swap.
-
-**Before**
-
-> In today's rapidly evolving landscape, it's worth noting that our robust solution doesn't just streamline workflows — it transforms them. The implementation of our platform facilitates seamless collaboration, enhances productivity, and unlocks innovation. The data tells us adoption is accelerating.
-
-**After**
-
-> More teams are moving to the platform, and the ones that do say it's easier to work together.
->
-> *(The original names nothing concrete — no numbers, no example, nothing that actually happened. I won't invent them for you. Give me one real win and this goes from fine to undeniable.)*
-
-A paragraph of throat-clearing became one plain sentence and a straight question. Notice what the skill did *not* do: it didn't fabricate a statistic to fill the empty space. The empty space was the real problem, so it said so.
+<p align="center"><em>Free · open source (MIT) · no account · works with your Claude subscription</em></p>
 
 ---
 
 ## What it is
 
-Voicestead is a small writing skill for Claude. It handles the mechanical work — structure, tightening, cutting the tells that mark prose as machine-made — and leaves you the thinking and the voice. It does the dishes. You keep the art.
+A small writing skill for Claude. Paste in a rough draft or a brain-dump and get back something you'd actually send — in your voice, not a model's. It runs entirely locally: no account, no server, nothing to sign up for. If you ever want your voice to follow you across devices, you can turn on memory later — but you never have to.
 
-Underneath sit three mental models — name the one job, point first, say it to one person — plus a persuasion module drawn from the influence classics and an anti-slop discipline. That last piece is built on what separates human writing from machine writing: rhythm that varies and specifics that are real, not a brittle list of banned words.
+One thing it will not do is invent facts. When a draft has no real number or quote to stand on, it says so and asks you for one instead of making it up.
 
----
+**Before**
+
+> In today's rapidly evolving landscape, our robust solution doesn't just streamline workflows — it transforms them, unlocking innovation and driving engagement at scale.
+
+**After**
+
+> More teams are moving to the platform, and the ones that do say it's easier to work together.
+>
+> *(The original names nothing real — no number, no example. I won't invent one for you. Give me a win that actually happened and this goes from fine to sharp.)*
+
+A paragraph of throat-clearing became one plain sentence. Notice what it did *not* do: fill the empty space with a made-up statistic. The empty space was the problem, so it said so.
 
 ## Install
 
-Find your platform, do the one thing in the **Install** column. That's it.
+One step for your client. Pick one.
 
-| Platform | Install | Account | ~Time |
-|---|---|---|---|
-| **Claude Code** | one `/plugin` command | Claude | 1 min |
-| **claude.ai** (Projects, desktop) | upload the `.skill` | Claude | 2 min |
-| **ChatGPT** (Custom GPT / Project) | paste 1 box · upload **1** file | ChatGPT | 3 min |
-| **Gemini** (Gem) | paste 1 box · upload **1** file | Google | 3 min |
-| **Codex · Cursor · Copilot · Zed** (`AGENTS.md`) | one `curl` command | — | 30 sec |
-| **Cursor · Codex · Copilot · CLIs** (native skill) | one `git` command | — | 30 sec |
-
-> **Want true one-click on ChatGPT & Gemini** — click a link, start typing, nothing to paste or upload? That version is *hosted*, so it has to be published once from a Voicestead account. The 5-minute how-to is in [`docs/PUBLISHING.md`](docs/PUBLISHING.md); once it's live this table gets two "▶ Open" links. Until then, the 3-minute build below is the way.
-
-> **Cross-device memory (beta, free):** want your voice profile to follow you to every device? Turn on **Voicestead Memory** — a connector you add once in Claude's settings. See [Connect Voicestead Memory](#connect-voicestead-memory).
-
-### Claude Code
-
-Plugin (auto-updates when the version bumps):
+**Claude Code**
 
 ```
 /plugin marketplace add greenpioneersolutions/voicestead
 /plugin install voicestead@voicestead
 ```
 
-Or copy the folder, no marketplace: `cp -r skills/voicestead ~/.claude/skills/`
+**claude.ai (skill upload)** — build the skill file, then upload it under **Customize → Skills**:
 
-### claude.ai (Projects, desktop)
-
-```bash
-python3 -m scripts.package_skill voicestead   # builds voicestead.skill
+```
+python3 -m scripts.package_skill voicestead   # → voicestead.skill
 ```
 
-Upload `voicestead.skill` under Customize → Skills.
+**Claude Desktop** — same `voicestead.skill` as above, uploaded under **Customize → Skills** in the desktop app.
 
-### ChatGPT — Custom GPT or Project
+On ChatGPT, Gemini, or a coding tool (Codex, Cursor, Copilot)? Each has a paste-ready bundle — see [other platforms](#other-platforms).
 
-<details>
-<summary><strong>3-minute build</strong> (until the hosted one-click lands)</summary>
+## Try it
 
-1. ChatGPT → **Explore GPTs → Create → Configure**. Name it `Voicestead`.
-2. **Instructions:** open [`exports/chatgpt/instructions.txt`](exports/chatgpt/instructions.txt) (the raw view has a **Copy** button), and paste it into the Instructions box.
-3. **Knowledge:** upload the single [`exports/chatgpt/knowledge-bundle.md`](exports/chatgpt/knowledge-bundle.md) — **one file, not ten**. (Want finer retrieval? Upload the ten files in [`exports/chatgpt/knowledge/`](exports/chatgpt/knowledge) instead.)
-4. Paste the four lines from [`conversation-starters.txt`](exports/chatgpt/conversation-starters.txt) → **Create**.
+Install it, then paste one of these into a fresh chat:
 
-Full walkthrough and the lighter Project option: [`exports/chatgpt/SETUP.md`](exports/chatgpt/SETUP.md).
+- **Turn a mess into an email.** *"Help me tell my team the launch slips to Friday. Here's the mess: QA found a login bug, the fix needs another two days, and I don't want to sound panicked."*
+- **Make it sound less AI.** Paste something stiff and say *"make this sound less AI — keep my meaning, lose the polish."*
+- **Draft a hard message.** *"Help me push back on my manager's deadline without sounding difficult."*
 
-</details>
+None of these need setup. To make it sound like *you* specifically, give it two or three real samples of your writing and ask for a voice profile — about three minutes, and every draft after that edits toward you.
 
-### Gemini — Gem
+## Turn on memory (optional)
 
-<details>
-<summary><strong>3-minute build</strong></summary>
+The skill sounds like you today from the voice file you give it. **Voicestead Memory** does the remembering for you: your voice profile and the lines that worked persist across sessions and devices, so you never paste them again. It stores only lines you've approved, your own Claude still does all the writing on your own subscription, and you can see and delete everything — including any line held for review — at `app.voicestead.ai`. The skill works exactly the same without it.
 
-1. Gemini → **Gem manager → New Gem**. Name it `Voicestead`.
-2. **Instructions:** copy [`exports/gemini/instructions.txt`](exports/gemini/instructions.txt), paste it in.
-3. **Knowledge:** upload the single [`exports/gemini/knowledge-bundle.md`](exports/gemini/knowledge-bundle.md) — one file, so there's no 10-file cap to manage.
-4. **Save.**
+Steps for every client are in **[CONNECT.md](CONNECT.md)** — a one-time setup you do in your Claude's connector settings.
 
-Full walkthrough: [`exports/gemini/SETUP.md`](exports/gemini/SETUP.md).
+## Privacy
 
-</details>
+Your voice profile is a plain file — on your machine in Claude Code, or in your own Project on claude.ai. It never leaves your control, and it's yours to read, edit, or delete.
 
-### AGENTS.md tools (Codex, Copilot, Cursor, Zed, Amp)
-
-One command drops it into your repo:
-
-```bash
-curl -o AGENTS.md https://raw.githubusercontent.com/greenpioneersolutions/voicestead/main/exports/agents/AGENTS.md
-```
-
-Claude Code reads `CLAUDE.md`, so also run `printf '@AGENTS.md\n' >> CLAUDE.md`. More: [`exports/agents/SETUP.md`](exports/agents/SETUP.md).
-
-### Skill-native coding tools (Cursor, Codex, Copilot, Gemini CLI, Windsurf)
-
-These read Agent Skills natively — drop the full skill (all references, on-demand loading) into `.agents/skills/`:
-
-```bash
-git clone --depth 1 https://github.com/greenpioneersolutions/voicestead /tmp/voicestead \
-  && cp -r /tmp/voicestead/skills/voicestead .agents/skills/voicestead
-```
-
-*(The two `curl`/`git` commands assume the repo is public on GitHub.)*
-
-### What each surface keeps
-
-| Capability | Claude | Skill-native | ChatGPT / Gemini | AGENTS.md |
-|---|---|---|---|---|
-| On-demand references | ✅ | ✅ | ⚠️ retrieval | ❌ repo links |
-| Voice-profile persistence | ✅ file | ✅ file | ⚠️ paste | ⚠️ in-file |
-| Install | plugin | one command | paste + 1 upload | one command |
-
-`⚠️` = works with a caveat — the honest limits are in [`docs/PLATFORMS.md`](docs/PLATFORMS.md).
+Turn on memory and what it stores stays private to you: approved lines only, kept in your own space, never pooled with anyone else's and never used to train a shared model, deletable for real. Contributions to this project stay on the shared surfaces — eval cases, tell-lists, format packs — never personal voice files. More detail: [CONNECT.md](CONNECT.md) and [docs/BETA.md](docs/BETA.md).
 
 ---
 
-## Does it actually work?
+## Does it work?
 
-Fair question to ask of anything that claims to improve your writing. Voicestead answers it with a test harness instead of adjectives.
-
-Prose is hard to test: the same prompt gives different text every run, and "good" spans voice, clarity, rhythm, and truth at once. So the harness works in three tiers, each catching a different failure at a different cost.
-
-- **Tier 1 — deterministic checks.** Free, instant, and run on every push. A counter or a regex catches the mechanical slop: a buried point, metronomic rhythm, one triad too many, a tell-word, a number in the output that was never in the input. That last one is the hard gate — a writing tool that invents statistics is dangerous, and this stops it cheaply.
-- **Tier 2 — LLM as judge.** For the subjective dimensions a regex can't touch. A second Claude scores each output against an anchored rubric, runs several times for stability, and — the headline metric — judges *with-skill against without-skill*, blind and order-randomized. We report a win rate, not a vibe.
-- **Tier 3 — you.** One question stays human forever: *does it sound like me?* A judge can approximate "sounds human." It can't confirm it sounds like *you*. Your verdicts get saved as a golden set that anchors every future version.
-
-Full method: [`tests/TESTING.md`](tests/TESTING.md). Every recorded run lives in the public run ledger — [`docs/evals/`](docs/evals/README.md) — with its backend, models, and figures copied straight from the run's own artifacts.
+Fair question for anything that claims to improve your writing. Voicestead answers with a test harness, not adjectives — three tiers, each catching a different failure at a different cost: free deterministic checks on every push (including a hard gate that fails any draft with a number that wasn't in the input), an LLM judge for the subjective dimensions, and you for the one question a machine can't answer — *does it sound like me?* Method: [tests/TESTING.md](tests/TESTING.md); every run is logged in [docs/evals/](docs/evals/README.md).
 
 ### Scorecard
 
@@ -160,133 +88,56 @@ Full method: [`tests/TESTING.md`](tests/TESTING.md). Every recorded run lives in
 | Hard-gate failures (skill's own drafts) | 0 | **3 of 32*** |
 | Previously-shipping golden cases regressed | 0 | *golden set not in this run* |
 
-*First read, 2026-07-08 — all 32 cases at `--runs 1` on a Claude Code subscription (`claude-cli` backend). **Directional, not the averaged official number** (23 blind judgments; an averaged `--runs 3` or pinned `--backend api` run comes next). The three hard-gate cases are honest misses, not fabrications hidden: an over-expanded short edit, an accurate-but-unsourced date, and an incomplete de-slop — full breakdown and provenance in [`docs/evals/`](docs/evals/). No number goes in this table until it's measured, judged blind; a writing skill that invents its own results is the exact thing this one exists to stop.*
-
----
+*First read, 2026-07-08 — all 32 cases at `--runs 1` on a Claude Code subscription. Directional, not the averaged official number; a pinned `--backend api` run comes next. The three hard-gate misses are honest — an over-expanded edit, an accurate-but-unsourced date, an incomplete de-slop — with the full breakdown in [docs/evals/](docs/evals/). No number goes in this table until it's measured blind; a writing skill that invents its own results is the exact thing this one exists to stop.*
 
 ## Make it yours
 
-The lean core ships the same for everyone. What makes it *yours* is two files you build once.
+What makes it *yours* is two files you build once. Paste a few real samples and the skill learns your defaults — sentence length, punctuation habits, whether you open with a lowercase "hey" — and edits toward you from then on. Run the influence interview and it studies the writers who shaped you for their moves, not their fingerprints. In Claude Code these are plain files (`voice-profile.md`, `influences.md`) the skill rereads each run; on claude.ai you add them to your Project knowledge. No magic persistence — just files you can inspect, edit, or delete.
 
-- **Voice profile.** Paste two or three real samples of your writing and the skill learns your defaults — your sentence length, your punctuation habits, whether you open with a lowercase "hey." From then on it edits toward you, not toward generic polish.
-- **Influences.** Run the influence interview and teach it the writers who shaped you. It studies them for moves, not fingerprints, and lets those moves inform a draft without ever name-dropping them at the reader.
+## Other platforms
 
-**Storage, honestly.** In Claude Code, the skill writes `voice-profile.md` and `influences.md` and rereads them each run. On claude.ai, you add the same two files to your Project knowledge. There is no magic persistence — just plain files the skill reads. That is the whole trick, and it's yours to inspect, edit, or delete.
-
----
-
-## When you want more — Voicestead Studio
-
-**The skill sounds like you today. Studio remembers you tomorrow.**
-
-You turn it on as a connector called **Voicestead Memory** — the front door to Studio.
-
-The free skill sounds like you as long as you keep feeding it your voice files by hand. Studio does the remembering for you: a secure, private memory behind your Claude that keeps your voice profile current, saves the lines that actually worked, and hands your Claude the right ones at the right moment.
-
-- **Remembers your voice.** One living profile, versioned like code. Every session, on every surface, your Claude starts already knowing you — you never explain yourself twice.
-- **Learns what worked.** Tell it what you shipped and what landed. It keeps score and leans into the moves that win.
-- **Retrieves the right you.** An email to an exec isn't a post to strangers. Studio pulls your best past lines for this exact moment and hands them to your Claude as reference.
-- **Keeps receipts.** Every draft is scored — does it sound like you, are the tells creeping back, are the numbers real. Proof, not vibes.
-
-Studio never writes a word — your own Claude does that, on your own subscription. Your writing stays encrypted, walled off, never trained on, and deletable for real. Same honesty rule as the skill: it returns your real, stored words and never fabricates a memory. The skill is the tool; Studio is the memory.
-
-Studio will be paid at launch. **The beta is free and open now** — connect below. The skill stays free either way; read what Studio adds in [`docs/BETA.md`](docs/BETA.md).
-
-### Connect Voicestead Memory
-
-Connecting is a one-time, **manual** step you do in Claude's connector settings. The skill is only instructions — it can't add the connector or make an account for you, so don't wait on it to sign you up.
-
-1. In Claude's **connector settings**, add `mcp.voicestead.ai`.
-2. A browser tab opens at `app.voicestead.ai` — sign in with a **magic link** (no password).
-3. Approve access ("Allow Claude to access your Voicestead Memory").
-4. Done — the Memory tools light up in your session. About two minutes.
-
-Once connected, just write as usual and the skill uses your Memory automatically. Prefer not to? The free skill works exactly the same without it.
-
----
-
-## FAQ
-
-**Does it actually sound like me?**
-Out of the box it sounds like a clean, plain human — good, but generic. It sounds like *you* once you give it a voice profile from your real writing. That step is the difference, and it takes about three minutes.
-
-**Will it invent facts to make my writing better?**
-No, by design. When a draft has no real specifics, it flags the gap and asks you for one — it never fabricates a number or a quote. This is enforced, not just encouraged: the hard gate in Tier 1 fails any output containing a figure that wasn't in your input.
-
-**claude.ai or Claude Code — which door do I use?**
-Claude Code: install the plugin or copy the folder into `~/.claude/skills/`. claude.ai Projects or desktop: build the `.skill` and upload it under Customize → Skills. On ChatGPT, Gemini, or an AGENTS.md tool? Each now has its own paste-ready bundle in [`exports/`](exports/README.md). Same skill everywhere; only the delivery differs.
-
-**How is it tested?**
-A three-tier harness: free deterministic checks on every push, an LLM judge on demand, and a human for the final "sounds like me?" call. The headline number is a blind win rate against Claude with no skill loaded. See the scorecard above and [`tests/TESTING.md`](tests/TESTING.md).
-
-**Is my voice profile shared with anyone?**
-No. It's a local file on your machine (Claude Code) or a document in your own Project (claude.ai). It never leaves your control, and contributions to the project deliberately stay on the shared surfaces — format packs, eval cases, tell-lists — never personal voice files.
-
----
-
-## Your next draft could sound like you
-
-Two minutes from now, it can. That's the whole pitch.
-
-<p align="center"><a href="#install"><strong>Install Voicestead free</strong></a>&nbsp; · &nbsp;<a href="https://github.com/greenpioneersolutions/voicestead">Star it on GitHub</a>&nbsp; · &nbsp;<a href="https://voicestead.ai">voicestead.ai</a> <em>(coming soon)</em></p>
-
-<p align="center"><em>Free forever · no account · no credit card.</em></p>
-
----
+The same skill runs on ChatGPT (Custom GPT), Gemini (Gem), AGENTS.md tools, and skill-native coding tools — each with a paste-ready bundle and its own setup notes in [exports/](exports/README.md). What each surface keeps and gives up is in [docs/PLATFORMS.md](docs/PLATFORMS.md).
 
 ## Contributing
 
-Add a case to `tests/cases.json`, run the suite, and include the scorecard delta in your PR — details in [`CONTRIBUTING.md`](CONTRIBUTING.md).
+Add a case to `tests/cases.json`, run the suite, and include the scorecard delta in your PR — details in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Documentation
 
 - [Using Voicestead](docs/USING.md) — install, first run, the voice setup, the modes, storage.
-- [Platforms](docs/PLATFORMS.md) — what each surface (ChatGPT, Gemini, AGENTS.md, native) keeps and loses.
-- [Publishing the one-click versions](docs/PUBLISHING.md) — how to host the ChatGPT GPT and Gemini Gem.
+- [Connect memory](CONNECT.md) · [Troubleshooting](TROUBLESHOOTING.md)
+- [Platforms](docs/PLATFORMS.md) — what each surface keeps and loses.
 - [Architecture](docs/ARCHITECTURE.md) — how the skill and its eval harness are built.
-- [Beta access](docs/BETA.md) — what Voicestead Studio adds, and how to request early access.
-- [The launch play](docs/LAUNCH.md) — the go-to-market plan and where the project stands.
-
----
+- [Beta access](docs/BETA.md) — what Voicestead Studio adds.
+- [The launch play](docs/LAUNCH.md) — the plan and where the project stands.
 
 ## The story behind it
 
-Voicestead is built from 16 scholarly papers on what makes prose land, eight master writers studied for their moves, and one replication that failed — which we kept on purpose. Keeping the failure is the point. A skill whose whole job is to refuse invented facts has no business hiding the study that didn't hold up. The sourcing lives in [`skills/voicestead/references/craft-notes.md`](skills/voicestead/references/craft-notes.md) and [`science.md`](skills/voicestead/references/science.md).
-
----
+Voicestead is built from 16 scholarly papers on what makes prose land, eight master writers studied for their moves, and one replication that failed — which we kept on purpose. A skill whose whole job is to refuse invented facts has no business hiding the study that didn't hold up. The sourcing lives in [craft-notes.md](skills/voicestead/references/craft-notes.md) and [science.md](skills/voicestead/references/science.md).
 
 ## For developers
 
-The repository root is the plugin. The skill, the harness, and the manifests live side by side, the way a normal library keeps `src/` next to `tests/`.
+The repository root is the plugin — skill, harness, and manifests side by side.
 
 ```
 skills/voicestead/    the skill — the only thing packaged into voicestead.skill
 tests/                the three-tier eval harness (dev-only, never shipped)
-.claude-plugin/       plugin.json + marketplace.json (Door 1)
-scripts/              package_skill.py, check_placeholders.py
+.claude-plugin/       plugin.json + marketplace.json
+scripts/              package_skill.py, build_exports.py, check_links.py
 exports/              paste-ready bundles for ChatGPT, Gemini, AGENTS.md (generated + committed)
-exports/core.md       hand-authored ≤8k distillation; build_exports.py assembles the rest
-docs/                 ARCHITECTURE, USING, LAUNCH, BETA
-brand/                logo, favicon, OG card, color + type tokens (dev-only, never shipped)
-.github/workflows/    CI: check (free) on every push, evaluate + golden on dispatch
+docs/                 ARCHITECTURE, USING, LAUNCH, BETA, PLATFORMS
 ```
 
 ```bash
-# run the fast, free structural checks (no API key)
+# fast, free structural checks (no API key)
 pip3 install -r tests/requirements.txt
 python3 tests/checks/run_checks.py --corpus tests/corpus
 
-# run the full evaluation (default backend: your installed claude CLI, on a Claude Code subscription)
+# full evaluation (default backend: your installed claude CLI, on a Claude Code subscription)
 python3 tests/run_eval.py --cases tests/cases.json --runs 3 --out tests/results
-
-# the pinned SDK backend — for publishable numbers; needs a key
-export ANTHROPIC_API_KEY=sk-...
-python3 tests/run_eval.py --cases tests/cases.json --runs 3 --out tests/results --backend api
 ```
 
 `tests/` and `.github/` are never loaded by Claude at runtime. `python3 -m scripts.package_skill voicestead` zips only `skills/voicestead/`.
-
----
 
 ## License
 

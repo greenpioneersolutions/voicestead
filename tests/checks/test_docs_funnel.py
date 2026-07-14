@@ -61,3 +61,17 @@ def test_troubleshooting_leads_with_enable_for_chat_and_links_issues():
     assert ("this chat" in low or "current conversation" in low or "enabled" in low)
     # each fix is short and the file ends at the issues link
     assert "github.com/greenpioneersolutions/voicestead/issues" in md
+
+
+def test_readme_is_local_first_funnel_and_keeps_receipts():
+    md = _read("README.md")
+    low = md.lower()
+    # local-first lead
+    assert "works entirely locally" in low
+    # optional-memory routes to the canonical guide, not inline steps
+    assert "CONNECT.md" in md
+    assert "https://mcp.voicestead.ai/mcp" not in md, "connector URL belongs in CONNECT.md, not the README"
+    # the receipts asset survived the trim
+    assert "78.3%" in md
+    # the funnel's try-it section exists
+    assert "try it" in low
