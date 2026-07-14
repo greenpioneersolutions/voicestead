@@ -15,7 +15,7 @@
 
 ## What it is
 
-A small writing skill for Claude. Paste in a rough draft or a brain-dump and get back something you'd actually send — in your voice, not a model's. It runs entirely locally: no account, no server, nothing to sign up for. If you ever want your voice to follow you across devices, you can turn on memory later — but you never have to.
+A small writing skill for Claude. Paste in a rough draft or a brain-dump and get back something you'd actually send — in your voice, not a model's. It runs on your own Claude: no account, no server, nothing to sign up for. If you ever want your voice to follow you across devices, you can turn on memory later — but you never have to.
 
 One thing it will not do is invent facts. When a draft has no real number or quote to stand on, it says so and asks you for one instead of making it up.
 
