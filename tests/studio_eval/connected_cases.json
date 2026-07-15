@@ -47,5 +47,109 @@
     "must_contain_any": [["logo"], ["copy"]],
     "count": {"free memory": 1},
     "must_not_contain": ["limit_exceeded"]
+  },
+  {
+    "id": "err-unauthorized",
+    "prompt": "Draft and save a reminder to Sarah about the quarterly review.",
+    "load": ["references/studio.md"],
+    "connection": {"state": "connected", "default_persona": "Casual", "tool_error": "unauthorized"},
+    "must_contain_any": ["quarterly", "reconnect", "sign in again"],
+    "must_not_contain": ["unauthorized", "log_draft"]
+  },
+  {
+    "id": "err-forbidden-scope",
+    "prompt": "Draft and save a note about integrating the new API.",
+    "load": ["references/studio.md"],
+    "connection": {"state": "connected", "default_persona": "Casual", "tool_error": "forbidden_scope"},
+    "must_contain_any": ["API", "reconnect and approve", "approve that permission"],
+    "must_not_contain": ["forbidden_scope", "get_writer_context"]
+  },
+  {
+    "id": "err-invalid-input",
+    "prompt": "Draft and save a note about the roadmap changes.",
+    "load": ["references/studio.md"],
+    "connection": {"state": "connected", "default_persona": "Casual", "tool_error": "invalid_input"},
+    "must_contain_any": ["roadmap"],
+    "must_not_contain": ["invalid_input", "error", "json"]
+  },
+  {
+    "id": "err-conflict",
+    "prompt": "Draft and save a reminder about the project deadline.",
+    "load": ["references/studio.md"],
+    "connection": {"state": "connected", "default_persona": "Casual", "tool_error": "conflict"},
+    "must_contain_any": ["deadline"],
+    "must_not_contain": ["conflict occurred", "invalid", "log_draft"]
+  },
+  {
+    "id": "err-not-found",
+    "prompt": "Draft and save a thank you note to the engineering team.",
+    "load": ["references/studio.md"],
+    "connection": {"state": "connected", "default_persona": "Casual", "tool_error": "not_found"},
+    "must_contain_any": ["engineering"],
+    "must_not_contain": ["not_found", "error"]
+  },
+  {
+    "id": "err-limit-rate",
+    "prompt": "Draft and save a summary of the client feedback.",
+    "load": ["references/studio.md"],
+    "connection": {"state": "connected", "default_persona": "Casual", "tool_error": "limit_exceeded (rate)"},
+    "must_contain_any": ["client"],
+    "must_not_contain": ["limit_exceeded", "rate limit"]
+  },
+  {
+    "id": "err-limit-freecap",
+    "prompt": "Draft and save a note about the marketing campaign.",
+    "load": ["references/studio.md"],
+    "connection": {"state": "connected", "default_persona": "Casual", "tool_error": "limit_exceeded (free memory cap)"},
+    "must_contain_all": ["free memory"],
+    "must_contain_any": ["marketing"],
+    "must_not_contain": ["limit_exceeded"]
+  },
+  {
+    "id": "err-budget-exhausted",
+    "prompt": "Draft and save notes about Q3 planning.",
+    "load": ["references/studio.md"],
+    "connection": {"state": "connected", "default_persona": "Casual", "tool_error": "budget_exhausted"},
+    "must_contain_any": ["Q3"],
+    "must_not_contain": ["budget_exhausted", "score"]
+  },
+  {
+    "id": "err-quarantined",
+    "prompt": "Draft and save a message about the security update.",
+    "load": ["references/studio.md"],
+    "connection": {"state": "connected", "default_persona": "Casual", "tool_error": "quarantined"},
+    "must_contain_all": ["held for", "app.voicestead.ai"],
+    "must_contain_any": ["security"],
+    "must_not_contain": ["quarantined", "get_writer_context"]
+  },
+  {
+    "id": "err-internal",
+    "prompt": "Draft and save a reminder about the team retrospective.",
+    "load": ["references/studio.md"],
+    "connection": {"state": "connected", "default_persona": "Casual", "tool_error": "internal"},
+    "must_contain_any": ["retrospective", "unreachable", "finished it locally"],
+    "must_not_contain": ["internal error", "log_draft"]
+  },
+  {
+    "id": "doctor-healthy",
+    "prompt": "Did memory connect? Check it.",
+    "connection": {"state": "connected", "identity": "jason@example.com", "scopes": ["Read your memories", "Add to your memory", "Use your voice profile", "See your receipts"]},
+    "must_contain_all": ["Read your memories"],
+    "must_contain_any": ["connected"],
+    "must_not_contain": ["ping", "whoami", "get_voice_profile"]
+  },
+  {
+    "id": "doctor-broken-auth",
+    "prompt": "I just connected — can you check it?",
+    "connection": {"state": "broken", "tool_error": "unauthorized"},
+    "must_contain_any": ["sign in again", "reconnect"],
+    "must_not_contain": ["unauthorized", "whoami"]
+  },
+  {
+    "id": "doctor-silent-downgrade",
+    "prompt": "Draft a quick note to my team about the Friday demo.",
+    "connection": {"state": "broken", "tool_error": "internal"},
+    "must_contain_any": ["demo", "Friday"],
+    "must_not_contain": ["memory", "connect", "checking the connection", "whoami"]
   }
 ]
