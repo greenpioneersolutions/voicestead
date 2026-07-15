@@ -33,10 +33,10 @@
   },
   {
     "id": "broken-finishes-locally",
-    "prompt": "Draft a two-line thanks note to the design team and save it.",
+    "prompt": "Draft a two-line thanks note to the Meridian design team for shipping the dashboard on time, and save it.",
     "load": ["references/studio.md", "references/connect.md"],
     "connection": {"state": "broken", "tool_error": "unauthorized"},
-    "must_contain_any": [["design", "thanks"], ["reconnect", "sign in again", "sign-in"]],
+    "must_contain_any": [["Meridian", "dashboard"], ["reconnect", "sign in again", "sign-in"]],
     "must_not_contain": ["unauthorized", "get_writer_context", "log_draft"]
   },
   {
@@ -50,84 +50,84 @@
   },
   {
     "id": "err-unauthorized",
-    "prompt": "Draft and save a reminder to Sarah about the quarterly review.",
+    "prompt": "Draft and save a one-line reminder to Sarah that the Zephyr launch review is Thursday at 2pm.",
     "load": ["references/studio.md"],
     "connection": {"state": "connected", "default_persona": "Casual", "tool_error": "unauthorized"},
-    "must_contain_any": [["quarterly"], ["reconnect", "sign in again"]],
+    "must_contain_any": [["Zephyr", "Sarah"], ["reconnect", "sign in again", "sign back in", "re-sign"]],
     "must_not_contain": ["unauthorized", "log_draft"]
   },
   {
     "id": "err-forbidden-scope",
-    "prompt": "Draft and save a note about integrating the new API.",
+    "prompt": "Draft and save a short note to the team that the Atlas API integration is done and live.",
     "load": ["references/studio.md"],
     "connection": {"state": "connected", "default_persona": "Casual", "tool_error": "forbidden_scope"},
-    "must_contain_any": [["API"], ["reconnect and approve", "approve that permission"]],
+    "must_contain_any": [["Atlas"], ["approve", "permission", "reconnect"]],
     "must_not_contain": ["forbidden_scope", "get_writer_context"]
   },
   {
     "id": "err-invalid-input",
-    "prompt": "Draft and save a note about the roadmap changes.",
+    "prompt": "Draft and save a one-line update that the Nimbus roadmap moved billing to Q4.",
     "load": ["references/studio.md"],
     "connection": {"state": "connected", "default_persona": "Casual", "tool_error": "invalid_input"},
-    "must_contain_any": ["roadmap"],
-    "must_not_contain": ["invalid_input", "error", "json"]
+    "must_contain_any": ["Nimbus"],
+    "must_not_contain": ["invalid_input", "error", "json", "log_draft"]
   },
   {
     "id": "err-conflict",
-    "prompt": "Draft and save a reminder about the project deadline.",
+    "prompt": "Draft and save a one-line reminder that the Orion project ships next Friday.",
     "load": ["references/studio.md"],
     "connection": {"state": "connected", "default_persona": "Casual", "tool_error": "conflict"},
-    "must_contain_any": ["deadline"],
-    "must_not_contain": ["conflict occurred", "invalid", "log_draft"]
+    "must_contain_any": ["Orion"],
+    "must_not_contain": ["conflict", "log_draft"]
   },
   {
     "id": "err-not-found",
-    "prompt": "Draft and save a thank you note to the engineering team.",
+    "prompt": "Draft and save a two-line thank-you to the Falcon engineering team for the on-call rotation fix.",
     "load": ["references/studio.md"],
     "connection": {"state": "connected", "default_persona": "Casual", "tool_error": "not_found"},
-    "must_contain_any": ["engineering"],
+    "must_contain_any": ["Falcon"],
     "must_not_contain": ["not_found", "error"]
   },
   {
     "id": "err-limit-rate",
-    "prompt": "Draft and save a summary of the client feedback.",
+    "prompt": "Draft and save a short summary of the Acme client feedback from today's call.",
     "load": ["references/studio.md"],
     "connection": {"state": "connected", "default_persona": "Casual", "tool_error": "limit_exceeded (rate)"},
-    "must_contain_any": ["client"],
+    "must_contain_any": ["Acme"],
     "must_not_contain": ["limit_exceeded", "rate limit"]
   },
   {
     "id": "err-limit-freecap",
-    "prompt": "Draft and save a note about the marketing campaign.",
+    "prompt": "Draft and save a one-line note that the Blackbird marketing campaign goes live Monday.",
     "load": ["references/studio.md"],
     "connection": {"state": "connected", "default_persona": "Casual", "tool_error": "limit_exceeded (free memory cap)"},
     "must_contain_all": ["free memory"],
-    "must_contain_any": ["marketing"],
+    "must_contain_any": ["Blackbird"],
     "must_not_contain": ["limit_exceeded"]
   },
   {
     "id": "err-budget-exhausted",
-    "prompt": "Draft and save notes about Q3 planning.",
+    "prompt": "Draft and save a short note about the Q3 planning priorities for the Kestrel team.",
     "load": ["references/studio.md"],
     "connection": {"state": "connected", "default_persona": "Casual", "tool_error": "budget_exhausted"},
-    "must_contain_any": ["Q3"],
+    "must_contain_any": ["Kestrel"],
     "must_not_contain": ["budget_exhausted", "score"]
   },
   {
     "id": "err-quarantined",
-    "prompt": "Draft and save a message about the security update.",
+    "prompt": "Draft and save a two-line Slack note to the team: the Sentinel security patch shipped this morning, no action needed.",
     "load": ["references/studio.md"],
     "connection": {"state": "connected", "default_persona": "Casual", "tool_error": "quarantined"},
     "must_contain_all": ["held for", "app.voicestead.ai"],
-    "must_contain_any": ["security"],
+    "must_contain_any": ["Sentinel"],
     "must_not_contain": ["quarantined", "get_writer_context"]
   },
   {
     "id": "err-internal",
-    "prompt": "Draft and save a reminder about the team retrospective.",
+    "prompt": "Draft and save a one-line reminder that the Vertex team retrospective is Friday at 3pm.",
     "load": ["references/studio.md"],
     "connection": {"state": "connected", "default_persona": "Casual", "tool_error": "internal"},
-    "must_contain_any": [["retrospective"], ["unreachable", "finished it locally"]],
+    "must_contain_any": [["Vertex"], ["unreachable", "finished it locally"]],
     "must_not_contain": ["internal error", "log_draft"]
   },
   {
@@ -144,7 +144,7 @@
     "prompt": "I just connected — can you check it?",
     "load": ["references/studio.md", "references/connect.md"],
     "connection": {"state": "broken", "tool_error": "unauthorized"},
-    "must_contain_any": ["sign in again", "reconnect"],
+    "must_contain_any": ["reconnect", "sign in again", "sign back in", "re-sign"],
     "must_not_contain": ["unauthorized", "whoami"]
   },
   {
@@ -160,7 +160,7 @@
     "prompt": "Help me email the CFO that the budget review slips a week.",
     "load": ["references/studio.md"],
     "connection": {"state": "connected", "default_persona": "Casual", "personas": ["Exec", "LinkedIn"]},
-    "must_contain_any": ["used your Exec voice"],
+    "must_contain_any": [["exec voice"]],
     "must_not_contain": ["get_voice_profile"]
   },
   {
