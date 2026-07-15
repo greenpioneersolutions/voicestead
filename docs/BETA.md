@@ -18,12 +18,14 @@ The standalone skill works fully today, with or without Studio. Studio is an enh
 
 ## How to connect
 
-Connecting is a one-time, **manual** step you do in Claude's connector settings — the skill can't do it for you (a skill is only instructions; it has no way to register an account or add a connector, so don't wait on it to sign you up).
+Connecting is a one-time, **manual** step you do in Claude's connector settings. The skill can't create your account or add the connector for you — it's only instructions — but it *will* walk you through the exact steps for your client and check the connection once it's in. Ask it how to connect and it hands you the right guide; you're never left waiting on it.
 
 1. In Claude's **connector settings**, add `mcp.voicestead.ai`.
 2. A browser tab opens at `app.voicestead.ai` — sign in with a **magic link** (no password).
 3. Approve access ("Allow Claude to access your Voicestead Memory").
 4. The Memory tools light up in your session — about two minutes, no config.
+
+Per-client steps (claude.ai, Desktop, Claude Code) and the one thing people miss — turning the connector on for the *current chat* — are in [CONNECT.md](../CONNECT.md). Stuck? [TROUBLESHOOTING.md](../TROUBLESHOOTING.md).
 
 Prefer to follow along or flag a problem? [Watch the repo](https://github.com/greenpioneersolutions/voicestead) for release news, or [open an issue](https://github.com/greenpioneersolutions/voicestead/issues) with how you'd use it and anything that got in your way.
 

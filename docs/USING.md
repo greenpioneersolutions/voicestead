@@ -165,6 +165,14 @@ Either way, the file is the source of truth. Portable, reviewable, and it never 
 
 ---
 
+## Turn on memory (optional)
+
+Everything above is local — your profile is a file, and it lives on the surface you built it on. **Voicestead Memory** is the optional upgrade: your voice profile and the lines that worked follow you across sessions and devices, so you never paste them again. It saves only lines you've approved, your own Claude still does the writing, and you can see or delete anything — including any line held for review — at `app.voicestead.ai`. The skill works exactly the same without it.
+
+It's a one-time setup you do yourself in your Claude's connector settings. The skill can't create your account or add the connector for you — but it *will* hand you the exact steps for your client and check the connection once it's in, so you're never stuck. Just ask it how to connect. The full per-client guide is in [CONNECT.md](../CONNECT.md); if something's off, [TROUBLESHOOTING.md](../TROUBLESHOOTING.md).
+
+---
+
 ## Limits
 
 Worth knowing before you lean on it.
