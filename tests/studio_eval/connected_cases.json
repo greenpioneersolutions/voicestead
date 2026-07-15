@@ -53,7 +53,7 @@
     "prompt": "Draft and save a reminder to Sarah about the quarterly review.",
     "load": ["references/studio.md"],
     "connection": {"state": "connected", "default_persona": "Casual", "tool_error": "unauthorized"},
-    "must_contain_any": ["quarterly", "reconnect", "sign in again"],
+    "must_contain_any": [["quarterly"], ["reconnect", "sign in again"]],
     "must_not_contain": ["unauthorized", "log_draft"]
   },
   {
@@ -61,7 +61,7 @@
     "prompt": "Draft and save a note about integrating the new API.",
     "load": ["references/studio.md"],
     "connection": {"state": "connected", "default_persona": "Casual", "tool_error": "forbidden_scope"},
-    "must_contain_any": ["API", "reconnect and approve", "approve that permission"],
+    "must_contain_any": [["API"], ["reconnect and approve", "approve that permission"]],
     "must_not_contain": ["forbidden_scope", "get_writer_context"]
   },
   {
@@ -127,7 +127,7 @@
     "prompt": "Draft and save a reminder about the team retrospective.",
     "load": ["references/studio.md"],
     "connection": {"state": "connected", "default_persona": "Casual", "tool_error": "internal"},
-    "must_contain_any": ["retrospective", "unreachable", "finished it locally"],
+    "must_contain_any": [["retrospective"], ["unreachable", "finished it locally"]],
     "must_not_contain": ["internal error", "log_draft"]
   },
   {
