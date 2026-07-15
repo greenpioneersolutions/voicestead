@@ -406,6 +406,53 @@ def check_no_onboarding_pitch(output: str, prompt: str = "", **kw) -> Dict:
             "detail": "no onboarding re-pitch" if passed else f"re-pitches onboarding: {hits}"}
 
 
+STUDIO_LEAK = [
+    r"mcp\.voicestead\.ai", r"app\.voicestead\.ai", r"voicestead memory", r"\bconnector\b",
+    r"custom connector", r"magic link", r"check the connection", r"turn on (?:voicestead )?memory",
+]
+_STUDIO_REQUEST = re.compile(
+    r"\bmemor(?:y|ies)\b|\bremember\b|\bstudio\b|voicestead memory|cross-?device|another device|"
+    r"other device|second (?:device|surface)|sync\b|does (?:this|it) (?:remember|even work)|"
+    r"\bconnect(?:or|ing)?\b|why don'?t you know", re.I)
+
+
+def check_no_studio_leak(output: str, prompt: str = "", **kw) -> Dict:
+    """SOFT: a local session must not surface connect/Studio/doctor guidance the user
+    never asked for. Abstains when the prompt itself raises memory/connect/Studio —
+    mirroring check_no_onboarding_pitch."""
+    if prompt and _STUDIO_REQUEST.search(_normalize(prompt)):
+        return {"id": "no_studio_leak", "severity": "soft", "passed": True,
+                "detail": "user raised memory/connect — Studio guidance is responsive, not a leak"}
+    text = _normalize(output)
+    hits = []
+    for pat in STUDIO_LEAK:
+        for m in re.finditer(pat, text, re.I):
+            hits.append(m.group(0))
+    passed = len(hits) == 0
+    return {"id": "no_studio_leak", "severity": "soft", "passed": passed,
+            "detail": "no studio/connect leakage" if passed else f"unprompted studio/connect leak: {hits}"}
+
+
+_TOOL_NAMES = ["get_voice_profile", "save_voice_profile", "save_influence_card",
+               "list_influence_cards", "get_writer_context", "log_draft", "log_verdict",
+               "score_draft", "get_writer_stats", "whoami"]
+_RAW_CODES = ["forbidden_scope", "invalid_input", "not_found", "limit_exceeded", "budget_exhausted"]
+_JSON_ISH = re.compile(r'\{\s*"[a-z_]+"\s*:')
+
+
+def check_no_mechanics_leak(output: str, **kw) -> Dict:
+    """HARD: user-facing text must never expose a tool name, a raw snake_case error code, or a
+    JSON object. Ambiguous English codes (internal/conflict/unauthorized/quarantined/ping) are
+    omitted to avoid false positives; the live layer's must_not_contain catches those in context."""
+    text = _normalize(output)
+    hits = [n for n in _TOOL_NAMES + _RAW_CODES if re.search(r"\b" + re.escape(n) + r"\b", text)]
+    if _JSON_ISH.search(text):
+        hits.append("json-ish object")
+    passed = len(hits) == 0
+    return {"id": "no_mechanics_leak", "severity": "hard", "passed": passed,
+            "detail": "no mechanics leak" if passed else f"raw mechanics in user text: {hits}"}
+
+
 def check_zombie_nouns(output: str, threshold_per_200: float = 3.0, **kw) -> Dict:
     """SOFT: nominalization density — buried-verb nouns (-tion/-sion/-ment/-ance/-ence/-ity)
     per 200 words. Everyday nominalizations (information, documentation, implementation)
@@ -451,6 +498,8 @@ REGISTRY = {
     "has_subject": check_has_subject,
     "not_a_rewrite": check_not_a_rewrite,
     "no_onboarding_pitch": check_no_onboarding_pitch,
+    "no_studio_leak": check_no_studio_leak,
+    "no_mechanics_leak": check_no_mechanics_leak,
     "zombie_nouns": check_zombie_nouns,
     "false_agency": check_false_agency,
 }

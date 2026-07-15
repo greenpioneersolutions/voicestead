@@ -829,3 +829,36 @@ def test_split_sections_first_line_heading():
 
 def test_split_sections_empty_text():
     assert tm.split_sections("") == [("", "")]
+
+
+# ---- no_studio_leak (soft, abstaining) ----
+def test_no_studio_leak_flags_unprompted_connect_copy():
+    r = tm.run("Team — Friday moves to 10. Want me to remember your voice? Add mcp.voicestead.ai in your connector settings.",
+               ["no_studio_leak"])[0]
+    assert r["passed"] is False and r["severity"] == "soft"
+
+
+def test_no_studio_leak_clean_local_output():
+    assert tm.run("Team — Friday's standup moves to 10:00. Same link.", ["no_studio_leak"])[0]["passed"]
+
+
+def test_no_studio_leak_abstains_when_user_asks_about_memory():
+    r = tm.run("Add mcp.voicestead.ai in your connector settings.", ["no_studio_leak"],
+               prompt="how do I get you to remember my voice across devices?")[0]
+    assert r["passed"] is True   # responsive, not a leak
+
+
+# ---- no_mechanics_leak (hard) ----
+def test_no_mechanics_leak_flags_tool_names_and_codes():
+    r = tm.run("I saved that with log_draft; the call returned forbidden_scope.", ["no_mechanics_leak"])[0]
+    assert r["passed"] is False and r["severity"] == "hard"
+
+
+def test_no_mechanics_leak_ignores_ambiguous_english():
+    # 'internal' and 'conflict' are common words; must NOT false-positive
+    assert tm.run("There was an internal scheduling conflict, so I moved it.", ["no_mechanics_leak"])[0]["passed"]
+
+
+def test_no_mechanics_leak_clean_user_line():
+    assert tm.run("That one was held for your review — keep or discard it at app.voicestead.ai.",
+                  ["no_mechanics_leak"])[0]["passed"]
