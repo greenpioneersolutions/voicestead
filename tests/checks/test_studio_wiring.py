@@ -173,3 +173,23 @@ def test_studio_covers_personas():
     assert "references/voice.md" in md
     # persona switch is a mode switch -> reload the profile
     assert "reload that persona's profile" in low
+
+
+def test_studio_send_off_is_once_ever():
+    md = _read("references/studio.md")
+    low = md.lower()
+    assert "send-off" in low
+    assert "app.voicestead.ai" in md
+    assert "fresh" in low                       # fresh profile
+    assert "only ever once" in low or "never repeats" in low
+    assert "recurring" in low                    # the guard against a recurring plug
+
+
+def test_studio_receipts_speak_two_verdicts():
+    md = _read("references/studio.md")
+    low = md.lower()
+    assert "nothing invented" in low
+    assert "sounds like you" in low
+    assert "never counts" in low and "never thresholds" in low
+    assert "score_draft" in md
+    assert "get_writer_stats" in md              # trends stay a separate, sparing receipt
