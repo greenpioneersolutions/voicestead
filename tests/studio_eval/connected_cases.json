@@ -133,6 +133,7 @@
   {
     "id": "doctor-healthy",
     "prompt": "Did memory connect? Check it.",
+    "load": ["references/studio.md"],
     "connection": {"state": "connected", "identity": "jason@example.com", "scopes": ["Read your memories", "Add to your memory", "Use your voice profile", "See your receipts"]},
     "must_contain_all": ["Read your memories"],
     "must_contain_any": ["connected"],
@@ -141,6 +142,7 @@
   {
     "id": "doctor-broken-auth",
     "prompt": "I just connected — can you check it?",
+    "load": ["references/studio.md", "references/connect.md"],
     "connection": {"state": "broken", "tool_error": "unauthorized"},
     "must_contain_any": ["sign in again", "reconnect"],
     "must_not_contain": ["unauthorized", "whoami"]
@@ -148,6 +150,7 @@
   {
     "id": "doctor-silent-downgrade",
     "prompt": "Draft a quick note to my team about the Friday demo.",
+    "load": ["references/studio.md"],
     "connection": {"state": "broken", "tool_error": "internal"},
     "must_contain_any": ["demo", "Friday"],
     "must_not_contain": ["memory", "connect", "checking the connection", "whoami"]
