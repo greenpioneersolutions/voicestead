@@ -88,8 +88,10 @@ Two moves, kept distinct:
 The app's first-run flow ends with "now go write something." So on the first successful save or
 retrieval for a **fresh** profile — one just created, with no history yet — confirm, one time only,
 that memory is on: *"Memory's on now — you can watch it work at app.voicestead.ai."* A profile is
-only fresh right after it's created, so this never repeats. When the Activity feed is live this line
-may point there — *"you can see every time your memory gets used"* — but it never becomes a recurring
+only fresh right after it's created, so this never repeats. If that first save is the onboarding
+sync, let one line carry both — fold the dashboard pointer into the sync confirmation rather than
+stacking two "memory's on" beats in the same turn. When the Activity feed is live this line may
+point there — *"you can see every time your memory gets used"* — but it never becomes a recurring
 plug.
 
 ## Errors — every code has a designed state (never a raw error, a hang, or a stall)
