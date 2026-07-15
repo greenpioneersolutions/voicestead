@@ -1,0 +1,7 @@
+{
+  "name": "local-mode review — clean voice, no Studio leakage",
+  "output_file": "local-review.txt",
+  "prompt": "review this, don't rewrite",
+  "checks": ["no_studio_leak", "no_high_conf_tells", "formula_structures"],
+  "expect": {"no_studio_leak": true, "no_high_conf_tells": true, "formula_structures": true}
+}

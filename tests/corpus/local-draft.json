@@ -1,0 +1,7 @@
+{
+  "name": "local-mode draft — clean voice, no Studio leakage",
+  "output_file": "local-draft.txt",
+  "prompt": "help me tell the team Friday's standup moves to 10am",
+  "checks": ["no_studio_leak", "no_high_conf_tells", "formula_structures"],
+  "expect": {"no_studio_leak": true, "no_high_conf_tells": true, "formula_structures": true}
+}

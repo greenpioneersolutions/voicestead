@@ -1,0 +1,7 @@
+{
+  "name": "local-mode no mention — clean voice, no Studio leakage",
+  "output_file": "local-nomention.txt",
+  "prompt": "draft a note moving Q3 planning to Thursday",
+  "checks": ["no_studio_leak", "no_high_conf_tells", "formula_structures"],
+  "expect": {"no_studio_leak": true, "no_high_conf_tells": true, "formula_structures": true}
+}

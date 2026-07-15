@@ -1,0 +1,7 @@
+{
+  "name": "negative fixture: unprompted Studio pitch must trip no_studio_leak",
+  "output_file": "local-leak.txt",
+  "prompt": "help me tell the team Friday's standup moves to 10am",
+  "checks": ["no_studio_leak"],
+  "expect": {"no_studio_leak": false}
+}
