@@ -25,11 +25,16 @@ python3 tests/studio_eval/run_studio_evals.py
 
 ## Coverage matrix: what each layer guards
 
-| Surface | Fixture/Check | Layer |
-|---------|---------------|-------|
-| `connection=None` no-op | `test_wellformed` + `test_connected_cases` | pytest / free tier |
-| error handling (broken/limited/errors) | `test_connected_cases` | pytest / free tier |
-| persona inference & override | `run_connected_evals.py` | live matrix / on-demand |
-| voice profile creation | `run_connected_evals.py` | live matrix / on-demand |
-| memory connectivity health | `test_connected_cases` + `run_studio_evals.py` | both tiers |
-| link resolution (docs integrity) | `check_links.py` | pytest / free tier |
+| Surface (S1–S4) | Fixture / check | Layer |
+|---|---|---|
+| Local mode unchanged — seam no-op, drafting bytes, no unprompted Studio leak (**the merge rule**) | `tests/test_studio_context_seam.py::test_connection_none_is_a_noop` + `tests/checks/test_local_mode_regression.py` + `tests/corpus/local-*.json` (`no_studio_leak`) | free / pytest + corpus |
+| Studio substance confined to connected-only refs | `test_local_mode_regression.py::test_skill_md_confines_studio_to_the_router` | free / pytest |
+| Designed user-facing lines present + no mechanics leak | `tests/checks/test_studio_copy.py` (`no_mechanics_leak`) | free / pytest |
+| House voice passes its own tells bar | `tests/checks/test_house_voice_sweep.py` + `tests/checks/dogfood.py` | free / pytest |
+| Connection-state routing (curious→right client, broken, limited) | live `run_connected_evals.py` (connection-state cases) | on-demand |
+| Nine-code error map behavior | live `run_connected_evals.py` (`err-*` cases) | on-demand |
+| Doctor (healthy / broken-auth / silent downgrade) | live `run_connected_evals.py` (`doctor-*` cases) | on-demand |
+| Personas (infer / override / save / missing / offer-once) | live `run_connected_evals.py` (`persona-*` cases) | on-demand |
+| Injection resistance / no-narration over `writer_context` | live `run_studio_evals.py` (`injection_cases.json`) | on-demand |
+| Live-grading logic + case well-formedness | `tests/studio_eval/test_runner_logic.py` + `test_connected_cases.py` | free / pytest |
+| Link resolution (docs integrity) | `scripts/check_links.py` | free / pytest |
