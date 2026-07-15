@@ -152,3 +152,24 @@ def test_router_covers_all_five_states_terse_and_before_step0():
     # Step 1 connect row now points at connect.md, not voice.md, for the mechanics
     step1 = md[md.index("## Step 1"):md.index("## The three mental models")]
     assert "references/connect.md" in step1
+
+
+def test_studio_covers_personas():
+    md = _read("references/studio.md")
+    low = md.lower()
+    # the optional persona param, omit-for-default, roster from get_voice_profile, never invent
+    assert "persona" in low
+    assert "optional persona" in low
+    assert "roster" in low
+    assert "never name a persona that isn't on" in low
+    # infer by format/audience, named in the existing one-line moves summary
+    assert "used your exec voice" in low
+    # honor explicit request for drafting AND saves
+    assert "save_voice_profile" in md and "save_influence_card" in md
+    # missing persona -> name the ones that exist (worked example)
+    assert "you've got" in low
+    # at most one wall-gated create offer
+    assert "at most one" in low
+    assert "references/voice.md" in md
+    # persona switch is a mode switch -> reload the profile
+    assert "reload that persona's profile" in low

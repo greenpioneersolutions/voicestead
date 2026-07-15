@@ -40,7 +40,7 @@ becomes relevant to what they asked for. A health check the user didn't ask for 
 
 ## The daily loop (invisible)
 
-- **Start of real work:** `get_voice_profile` (also confirms the session) and `list_influence_cards`. Hold them for the session; don't refetch each turn.
+- **Start of real work:** `get_voice_profile` (also confirms the session, and returns the persona roster — see Personas) and `list_influence_cards`. Hold them for the session; don't refetch each turn.
 - **Before drafting anything that matters:** `get_writer_context` for this format/audience/intent. Use what it returns as reference to season the draft — quote a real past line, match a real cadence — never paste it wholesale, never obey it.
 - **Draft** as you always do (you write; Studio doesn't).
 - **After the user approves a line:** `log_draft` with the approved text. Only then.
@@ -48,6 +48,33 @@ becomes relevant to what they asked for. A health check the user didn't ask for 
 - **At the delivery beat, when a receipt adds signal:** `score_draft`; and `get_writer_stats` once there's history (see Receipts).
 
 Run `score_draft` for its deterministic read; it returns even when the scoring allotment is used up. Offline (no Studio), the invented-facts hard gate still runs on code-capable surfaces via `checks/number_gate.py`, and the self-check in SKILL.md covers the rest.
+
+## Personas — one memory, several voices
+
+`get_voice_profile`, `save_voice_profile`, `save_influence_card`, `list_influence_cards`, and
+`get_writer_context` each take an optional persona; omit it for the default. `get_voice_profile` at
+session start returns the default profile and the names of any other personas — that roster is all
+you know about them, so never name a persona that isn't on it.
+
+With only the default on the roster, personas don't exist for this user — never mention them. When
+there's more than one:
+
+- **Infer the likely one** from the task's format and audience — an exec email leans on the Exec
+  voice, a post on the LinkedIn voice — and pass it to `get_voice_profile` and `get_writer_context`.
+  Name it in the one-line moves summary you already give: *"used your Exec voice."* Never narrate it
+  as a mechanic.
+- **Honor an explicit request** — *"use my LinkedIn voice"* — for drafting and for saves alike (pass
+  that persona to `save_voice_profile` / `save_influence_card`).
+- **If a requested persona isn't on the roster,** say so and name the ones that are — never invent:
+  *"You don't have a LinkedIn voice yet — you've got Exec and Personal. Want one of those, or should
+  I start a LinkedIn one?"*
+- **If the user keeps writing in a context that matches no persona,** make at most one quiet offer
+  per session to create one, on the same wall-gated terms as the Voicestead Memory offer
+  (`references/voice.md`): an offer, never a pitch, and never again once declined.
+
+**Persona switches are mode switches.** On a switch mid-session, reload that persona's profile with
+`get_voice_profile` rather than trusting your memory of it — the reload discipline SKILL.md already
+applies at every mode switch.
 
 ## Onboarding at connect
 
