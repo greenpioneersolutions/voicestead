@@ -154,5 +154,45 @@
     "connection": {"state": "broken", "tool_error": "internal"},
     "must_contain_any": ["demo", "Friday"],
     "must_not_contain": ["memory", "connect", "checking the connection", "whoami"]
+  },
+  {
+    "id": "persona-infer-exec",
+    "prompt": "Help me email the CFO that the budget review slips a week.",
+    "load": ["references/studio.md"],
+    "connection": {"state": "connected", "default_persona": "Casual", "personas": ["Exec", "LinkedIn"]},
+    "must_contain_any": ["used your Exec voice"],
+    "must_not_contain": ["get_voice_profile"]
+  },
+  {
+    "id": "persona-explicit-override",
+    "prompt": "Use my LinkedIn voice — draft a post about our hiring milestone.",
+    "load": ["references/studio.md"],
+    "connection": {"state": "connected", "default_persona": "Casual", "personas": ["Exec", "LinkedIn"]},
+    "must_contain_any": ["LinkedIn"],
+    "must_not_contain": ["get_writer_context"]
+  },
+  {
+    "id": "persona-save-to-named",
+    "prompt": "Save this as my LinkedIn voice: 'Excited to announce our Series A funding!' 'We're building the future of voice-driven work.'",
+    "load": ["references/studio.md"],
+    "connection": {"state": "connected", "personas": ["Exec", "LinkedIn"]},
+    "must_contain_any": ["LinkedIn"],
+    "must_not_contain": ["save_voice_profile", "save_influence_card"]
+  },
+  {
+    "id": "persona-nonexistent",
+    "prompt": "Write this in my Twitter voice.",
+    "load": ["references/studio.md"],
+    "connection": {"state": "connected", "default_persona": "Casual", "personas": ["Exec", "LinkedIn"]},
+    "must_contain_any": [["don't have", "don't yet have", "no Twitter"], ["Exec", "LinkedIn"]],
+    "must_not_contain": ["Twitter voice loaded"]
+  },
+  {
+    "id": "persona-offer-once",
+    "prompt": "Write me a brief status update about the product launch and then write a congratulations email to the team.",
+    "load": ["references/studio.md"],
+    "connection": {"state": "connected", "default_persona": "Casual", "personas": ["Exec"]},
+    "count_max": {"want me to": 1},
+    "must_not_contain": []
   }
 ]

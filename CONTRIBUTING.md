@@ -50,6 +50,10 @@ Some surfaces are built for community help. Some are meant to stay one person's,
 
 If you're not sure which bucket your idea falls in, open an issue first and ask. We'd rather talk it through than turn a good contribution away at the door.
 
+### Before changing SKILL.md or references/
+
+Before changing SKILL.md or references/, see [the eval runbook](skills/voicestead/evals/RUNNING.md) — the local-mode regression must be green before merge.
+
 ### Changing the skill? Refresh the exports
 
 `skills/voicestead/SKILL.md` is the source of truth, but three flat-surface platforms ship a condensed copy. If you edit `SKILL.md`:
