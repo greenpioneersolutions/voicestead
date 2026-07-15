@@ -59,3 +59,18 @@ def test_local_mode_stance_strings_present():
     assert "local mode" in md.lower()
     assert "proceed exactly as today, byte-for-byte" in md
     assert "Never call a Studio tool that isn't present" in md
+
+
+def test_skill_md_confines_studio_to_the_router():
+    # Self-contained read (no dependence on the module's helpers): Studio *substance*
+    # must live in the connected-only references, never the always-loaded SKILL.md.
+    import os
+    repo = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    md = open(os.path.join(repo, "skills", "voicestead", "SKILL.md"), encoding="utf-8").read()
+    low = md.lower()
+    assert "mcp.voicestead.ai" not in md
+    assert "claude mcp add" not in md
+    assert "get_voice_profile" not in md
+    assert "## the doctor" not in low
+    assert "budget_exhausted" not in md and "forbidden_scope" not in md   # no error table
+    assert "## personas" not in low
