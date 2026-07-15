@@ -30,10 +30,15 @@ def test_doctor_and_client_and_persona_copy_present():
     assert "used your Exec voice" in studio and "never name a persona that isn't on" in studio.lower()
 
 def _quoted_lines(text):
-    # user-facing example lines: *"..."* italic-quotes and standalone "..." spans
-    out = re.findall(r'\*"([^"]{6,})"\*', text)
-    out += re.findall(r'(?<!\*)"([^"]{12,})"(?!\*)', text)
-    return out
+    # user-facing example lines: the skill's spoken lines are wrapped in *"..."* (often
+    # hard-wrapped across source lines), plus single-line bare "..." spans. The italic
+    # capture is NON-GREEDY (stops at the first "*), so it can never span across an
+    # adjacent quote into prose that mentions a tool in backticks; the bare capture is
+    # bounded to one line for the same reason. Internal whitespace is collapsed so a
+    # wrapped line is graded as one string.
+    italic = re.findall(r'\*"(.+?)"\*', text, re.S)
+    bare = re.findall(r'(?<!\*)"([^"\n]{6,})"(?!\*)', text)
+    return [re.sub(r"\s+", " ", s).strip() for s in italic + bare]
 
 def test_no_mechanics_leak_in_any_user_facing_line():
     for rel in ("references/studio.md", "references/connect.md"):
