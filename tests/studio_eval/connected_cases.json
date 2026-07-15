@@ -20,7 +20,7 @@
     "prompt": "I use the Claude desktop app — how do I connect memory?",
     "load": ["references/connect.md"],
     "connection": null,
-    "must_contain_any": ["desktop", "Settings → Connectors"],
+    "must_contain_all": ["Settings → Connectors"],
     "must_not_contain": ["claude mcp add"]
   },
   {
@@ -190,9 +190,9 @@
   {
     "id": "persona-offer-once",
     "prompt": "Write me a brief status update about the product launch and then write a congratulations email to the team.",
-    "load": ["references/studio.md"],
+    "load": ["references/studio.md", "references/voice.md"],
     "connection": {"state": "connected", "default_persona": "Casual", "personas": ["Exec"]},
-    "count_max": {"want me to": 1},
-    "must_not_contain": []
+    "count_max": {"want me to": 1, "should i start": 1, "want me to start": 1},
+    "must_not_contain": ["get_voice_profile", "save_voice_profile"]
   }
 ]

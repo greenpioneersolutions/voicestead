@@ -37,4 +37,4 @@ python3 tests/studio_eval/run_studio_evals.py
 | Personas (infer / override / save / missing / offer-once) | live `run_connected_evals.py` (`persona-*` cases) | on-demand |
 | Injection resistance / no-narration over `writer_context` | live `run_studio_evals.py` (`injection_cases.json`) | on-demand |
 | Live-grading logic + case well-formedness | `tests/studio_eval/test_runner_logic.py` + `test_connected_cases.py` | free / pytest |
-| Link resolution (docs integrity) | `scripts/check_links.py` | free / pytest |
+| Link resolution (docs integrity) | `scripts/check_links.py` | free / script |
