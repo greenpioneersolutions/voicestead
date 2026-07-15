@@ -10,6 +10,7 @@ import os, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 from run_studio_evals import check_case, CASES
+from run_connected_evals import check_case as check_case_connected
 
 
 def test_leaked_forbidden_text_is_flagged():
@@ -67,3 +68,90 @@ def test_case_file_loaded_and_shaped_as_expected():
     for c in CASES:
         assert "prompt" in c and "studio_context" in c
         assert "must_not_contain" in c or "must_contain_any" in c
+
+
+# ===== Connected evals grading tests (model-free unit tests for check_case_connected) =====
+
+def test_connected_must_contain_all_clean():
+    """Clean output passes must_contain_all check."""
+    case = {"id": "c1", "must_contain_all": ["design", "thanks"]}
+    failures = check_case_connected("Here is a design thanks note.", case)
+    assert failures == []
+
+
+def test_connected_must_contain_all_missing_one():
+    """Missing any required term fails."""
+    case = {"id": "c2", "must_contain_all": ["design", "thanks"]}
+    failures = check_case_connected("Here is a design note.", case)
+    assert len(failures) == 1
+    assert "c2" in failures[0] and "thanks" in failures[0]
+
+
+def test_connected_count_exact_clean():
+    """Exact count match passes."""
+    case = {"id": "c3", "count": {"free memory": 2}}
+    failures = check_case_connected("free memory once and free memory again.", case)
+    assert failures == []
+
+
+def test_connected_count_exact_violation():
+    """Wrong count fails."""
+    case = {"id": "c4", "count": {"free memory": 2}}
+    failures = check_case_connected("free memory once and free memory again and free memory once more.", case)
+    assert len(failures) == 1
+    assert "c4" in failures[0] and "!=" in failures[0]
+
+
+def test_connected_count_max_clean():
+    """Count within limit passes."""
+    case = {"id": "c5", "count_max": {"unauthorized": 0}}
+    failures = check_case_connected("The operation succeeded.", case)
+    assert failures == []
+
+
+def test_connected_count_max_violation():
+    """Count exceeding limit fails."""
+    case = {"id": "c6", "count_max": {"unauthorized": 0}}
+    failures = check_case_connected("unauthorized error occurred.", case)
+    assert len(failures) == 1
+    assert "c6" in failures[0] and ">" in failures[0]
+
+
+def test_connected_multiple_must_contain_any_clean():
+    """Multiple independent must_contain_any lists all pass."""
+    case = {"id": "c7", "must_contain_any": [["design", "thanks"], ["reconnect", "sign-in"]]}
+    failures = check_case_connected("Here is a design note. Please reconnect.", case)
+    assert failures == []
+
+
+def test_connected_multiple_must_contain_any_first_group_missing():
+    """First must_contain_any group missing fails."""
+    case = {"id": "c8", "must_contain_any": [["design", "thanks"], ["reconnect", "sign-in"]]}
+    failures = check_case_connected("Please reconnect to continue.", case)
+    assert len(failures) == 1
+    assert "c8" in failures[0]
+
+
+def test_connected_multiple_must_contain_any_second_group_missing():
+    """Second must_contain_any group missing fails."""
+    case = {"id": "c9", "must_contain_any": [["design", "thanks"], ["reconnect", "sign-in"]]}
+    failures = check_case_connected("Here is a design note.", case)
+    assert len(failures) == 1
+    assert "c9" in failures[0]
+
+
+def test_connected_combined_assertions():
+    """All assertion types together work correctly."""
+    case = {
+        "id": "c10",
+        "must_contain_all": ["draft"],
+        "must_contain_any": [["logo"], ["copy"]],
+        "count": {"free memory": 1},
+        "must_not_contain": ["unauthorized"],
+        "count_max": {"error": 0}
+    }
+    failures = check_case_connected(
+        "Draft one with logo and another with copy. free memory limit reached.",
+        case
+    )
+    assert failures == []

@@ -1,0 +1,51 @@
+[
+  {
+    "id": "curious-claude-code",
+    "prompt": "I'm in Claude Code — how do I get you to remember my voice?",
+    "load": ["references/connect.md"],
+    "connection": null,
+    "must_contain_all": ["claude mcp add"],
+    "must_not_contain": ["Settings → Connectors", "get_voice_profile", "log_draft"]
+  },
+  {
+    "id": "curious-claude-ai",
+    "prompt": "I'm on the Claude website — how do I turn on memory?",
+    "load": ["references/connect.md"],
+    "connection": null,
+    "must_contain_all": ["Settings → Connectors"],
+    "must_not_contain": ["claude mcp add"]
+  },
+  {
+    "id": "curious-desktop",
+    "prompt": "I use the Claude desktop app — how do I connect memory?",
+    "load": ["references/connect.md"],
+    "connection": null,
+    "must_contain_any": ["desktop", "Settings → Connectors"],
+    "must_not_contain": ["claude mcp add"]
+  },
+  {
+    "id": "curious-unknown-client",
+    "prompt": "How do I get you to remember me?",
+    "load": ["references/connect.md"],
+    "connection": null,
+    "must_contain_any": ["Claude app, or Claude Code", "which", "are you in"],
+    "must_not_contain": ["claude mcp add", "Settings → Connectors"]
+  },
+  {
+    "id": "broken-finishes-locally",
+    "prompt": "Draft a two-line thanks note to the design team and save it.",
+    "load": ["references/studio.md", "references/connect.md"],
+    "connection": {"state": "broken", "tool_error": "unauthorized"},
+    "must_contain_any": [["design", "thanks"], ["reconnect", "sign in again", "sign-in"]],
+    "must_not_contain": ["unauthorized", "get_writer_context", "log_draft"]
+  },
+  {
+    "id": "limited-freecap-repeated",
+    "prompt": "Draft and save two quick notes: one to Sam approving the logo, one to Ana approving the copy.",
+    "load": ["references/studio.md"],
+    "connection": {"state": "limited", "tool_error": "limit_exceeded (free memory cap)"},
+    "must_contain_any": [["logo"], ["copy"]],
+    "count": {"free memory": 1},
+    "must_not_contain": ["limit_exceeded"]
+  }
+]
